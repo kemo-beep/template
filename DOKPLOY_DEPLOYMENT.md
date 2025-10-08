@@ -58,6 +58,7 @@ LOG_LEVEL=info
 1. **Docker Compose File**: Use `docker-compose.dokploy.yml`
 2. **Port Mapping**: 
    - `8080:8080` (Main API)
+   - `5435:5432` (PostgreSQL - Internal)
    - `3001:3000` (Grafana - Optional)
    - `9090:9090` (Prometheus - Optional)
 
