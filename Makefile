@@ -204,6 +204,10 @@ dokploy-prepare: ## Prepare for Dokploy deployment
 	@echo "Preparing for Dokploy deployment..."
 	@./scripts/dokploy-deploy.sh
 
+dokploy-env: ## Generate environment variables for Dokploy
+	@echo "Generating Dokploy environment variables..."
+	@./scripts/dokploy-env-setup.sh
+
 dokploy-deploy: ## Deploy to Dokploy (requires manual setup in Dokploy UI)
 	@echo "Deploy to Dokploy:"
 	@echo "1. Push code to Git repository"
