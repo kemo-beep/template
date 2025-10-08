@@ -39,7 +39,7 @@ docker-compose up -d
    - **Database**: localhost:5434
 - **Redis**: localhost:6379
 - **Prometheus**: http://localhost:9090
-- **Grafana**: http://localhost:3000 (admin/admin)
+- **Grafana**: http://localhost:3001 (admin/admin)
 - **Jaeger**: http://localhost:16686
 
 ## 🛠 Features
@@ -201,7 +201,7 @@ Access Prometheus at http://localhost:9090 to view:
 
 ### Grafana Dashboards
 
-Access Grafana at http://localhost:3000 (admin/admin) to view:
+Access Grafana at http://localhost:3001 (admin/admin) to view:
 - Application performance dashboards
 - Infrastructure monitoring
 - Custom business metrics

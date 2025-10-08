@@ -213,7 +213,7 @@ services:
     image: grafana/grafana:latest
     container_name: mobile_backend_grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
@@ -675,7 +675,7 @@ GIN_MODE=debug
 PORT=8080
 
 # CORS (optional)
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+CORS_ALLOWED_ORIGINS=http://localhost:3001,http://localhost:8080
 ```
 
 ## 🧪 API Testing
@@ -1836,7 +1836,7 @@ dev: ## Start development environment
 	@echo "Database: localhost:5432"
 	@echo "Redis: localhost:6379"
 	@echo "Prometheus: http://localhost:9090"
-	@echo "Grafana: http://localhost:3000 (admin/admin)"
+	@echo "Grafana: http://localhost:3001 (admin/admin)"
 	@echo "Jaeger: http://localhost:16686"
 
 dev-build: ## Build and start development environment

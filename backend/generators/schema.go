@@ -218,7 +218,7 @@ func (c *{{.ModelName}}Controller) Get{{.ModelName}}List(ctx *gin.Context) {
 		return
 	}
 	
-	utils.SendSuccessResponse(ctx, "{{.ModelName}}s retrieved successfully", {{.ModelNameLower}}s)
+	utils.SendSuccessResponse(ctx, {{.ModelNameLower}}s, "{{.ModelName}}s retrieved successfully")
 }
 
 // Get{{.ModelName}} retrieves a {{.ModelName}} by ID
@@ -250,7 +250,7 @@ func (c *{{.ModelName}}Controller) Get{{.ModelName}}(ctx *gin.Context) {
 		return
 	}
 	
-	utils.SendSuccessResponse(ctx, "{{.ModelName}} retrieved successfully", {{.ModelNameLower}})
+	utils.SendSuccessResponse(ctx, {{.ModelNameLower}}, "{{.ModelName}} retrieved successfully")
 }
 
 // Create{{.ModelName}} creates a new {{.ModelName}}
@@ -269,7 +269,7 @@ func (c *{{.ModelName}}Controller) Create{{.ModelName}}(ctx *gin.Context) {
 	var {{.ModelNameLower}} models.{{.ModelName}}
 	
 	if err := ctx.ShouldBindJSON(&{{.ModelNameLower}}); err != nil {
-		utils.SendValidationErrorResponse(ctx, "Invalid input", err)
+		utils.SendValidationErrorResponse(ctx, map[string]string{"input": "Invalid input"})
 		return
 	}
 	
@@ -278,7 +278,7 @@ func (c *{{.ModelName}}Controller) Create{{.ModelName}}(ctx *gin.Context) {
 		return
 	}
 	
-	utils.SendCreatedResponse(ctx, "{{.ModelName}} created successfully", {{.ModelNameLower}})
+	utils.SendCreatedResponse(ctx, {{.ModelNameLower}}, "{{.ModelName}} created successfully")
 }
 
 // Update{{.ModelName}} updates a {{.ModelName}} by ID
@@ -313,7 +313,7 @@ func (c *{{.ModelName}}Controller) Update{{.ModelName}}(ctx *gin.Context) {
 	}
 	
 	if err := ctx.ShouldBindJSON(&{{.ModelNameLower}}); err != nil {
-		utils.SendValidationErrorResponse(ctx, "Invalid input", err)
+		utils.SendValidationErrorResponse(ctx, map[string]string{"input": "Invalid input"})
 		return
 	}
 	
@@ -322,7 +322,7 @@ func (c *{{.ModelName}}Controller) Update{{.ModelName}}(ctx *gin.Context) {
 		return
 	}
 	
-	utils.SendSuccessResponse(ctx, "{{.ModelName}} updated successfully", {{.ModelNameLower}})
+	utils.SendSuccessResponse(ctx, {{.ModelNameLower}}, "{{.ModelName}} updated successfully")
 }
 
 // Delete{{.ModelName}} deletes a {{.ModelName}} by ID
@@ -344,7 +344,7 @@ func (c *{{.ModelName}}Controller) Delete{{.ModelName}}(ctx *gin.Context) {
 		return
 	}
 	
-	utils.SendSuccessResponse(ctx, "{{.ModelName}} deleted successfully", nil)
+	utils.SendSuccessResponse(ctx, nil, "{{.ModelName}} deleted successfully")
 }
 `
 
@@ -385,9 +385,11 @@ func Setup{{.ModelName}}Routes(r *gin.Engine, {{.ModelNameLower}}Controller *con
 	{{.ModelNameLower}} := r.Group("/api/v1/{{.ModelNameLower}}")
 	{{.ModelNameLower}}.Use(middleware.AuthMiddleware())
 	{
-		{{range .Routes}}
-		{{.Method}}("{{.Path}}", {{.Handler}})
-		{{end}}
+		{{.ModelNameLower}}.GET("/", {{.ModelNameLower}}Controller.Get{{.ModelName}}List)
+		{{.ModelNameLower}}.GET("/:id", {{.ModelNameLower}}Controller.Get{{.ModelName}})
+		{{.ModelNameLower}}.POST("/", {{.ModelNameLower}}Controller.Create{{.ModelName}})
+		{{.ModelNameLower}}.PUT("/:id", {{.ModelNameLower}}Controller.Update{{.ModelName}})
+		{{.ModelNameLower}}.DELETE("/:id", {{.ModelNameLower}}Controller.Delete{{.ModelName}})
 	}
 }
 `

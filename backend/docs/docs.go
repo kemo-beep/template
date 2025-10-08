@@ -9,131 +9,137 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "MIT",
-            "url": "https://opensource.org/licenses/MIT"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/auth/login": {
-            "post": {
-                "description": "Login with email and password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "User login",
-                "parameters": [
-                    {
-                        "description": "Login credentials",
-                        "name": "login",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controllers.LoginRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Login successful",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.LoginResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid credentials",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/auth/register": {
-            "post": {
-                "description": "Register a new user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "User registration",
-                "parameters": [
-                    {
-                        "description": "User registration data",
-                        "name": "register",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controllers.RegisterRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "User created successfully",
-                        "schema": {
-                            "$ref": "#/definitions/controllers.RegisterResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Validation error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ValidationErrorResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "User already exists",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/profile": {
+        "/category": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get user profile",
+                "description": "Get list of all Category records",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "Category"
                 ],
-                "summary": "Get user profile",
+                "summary": "Get Category list",
                 "responses": {
                     "200": {
-                        "description": "Profile retrieved successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controllers.ProfileResponse"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new Category record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Category"
+                ],
+                "summary": "Create Category",
+                "parameters": [
+                    {
+                        "description": "Category data",
+                        "name": "category",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Category"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/category/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get Category record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Category"
+                ],
+                "summary": "Get Category by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Category ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -146,7 +152,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update user profile",
+                "description": "Update Category record by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -154,35 +160,48 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "Category"
                 ],
-                "summary": "Update user profile",
+                "summary": "Update Category",
                 "parameters": [
                     {
-                        "description": "Profile update data",
-                        "name": "profile",
+                        "type": "integer",
+                        "description": "Category ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Category data",
+                        "name": "category",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controllers.UpdateProfileRequest"
+                            "$ref": "#/definitions/models.Category"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Profile updated successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controllers.ProfileResponse"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "Validation error",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ValidationErrorResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -190,28 +209,23 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Delete user profile",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Delete user profile",
+                "description": "Delete Category record by ID",
+                "summary": "Delete Category",
                 "responses": {
-                    "200": {
-                        "description": "Profile deleted successfully",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.SuccessResponse"
+                            "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -219,14 +233,578 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/upload": {
+        "/order": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of all Order records",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Get Order list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Upload a single file",
+                "description": "Create a new Order record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Create Order",
+                "parameters": [
+                    {
+                        "description": "Order data",
+                        "name": "order",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Order"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/order/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get Order record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Get Order by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update Order record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Order"
+                ],
+                "summary": "Update Order",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Order ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Order data",
+                        "name": "order",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Order"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete Order record by ID",
+                "summary": "Delete Order",
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/product": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get list of all Product records",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Get Product list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new Product record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Create Product",
+                "parameters": [
+                    {
+                        "description": "Product data",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Product"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/product/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get Product record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Get Product by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update Product record by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Update Product",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Product ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Product data",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Product"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete Product record by ID",
+                "summary": "Delete Product",
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/schema/cleanup/{model}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove generated files for a specific model",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "generator"
+                ],
+                "summary": "Cleanup model",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Model name",
+                        "name": "model",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/schema/generate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate CRUD APIs from a JSON schema definition",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "generator"
+                ],
+                "summary": "Generate APIs from schema",
+                "parameters": [
+                    {
+                        "description": "Schema definition",
+                        "name": "schema",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/generators.SchemaModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/schema/generate-all": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate CRUD APIs for all existing database tables",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "generator"
+                ],
+                "summary": "Generate APIs for all tables",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/schema/migration": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate CRUD APIs from a database migration file",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -234,13 +812,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "upload"
+                    "generator"
                 ],
-                "summary": "Upload file",
+                "summary": "Generate APIs from migration",
                 "parameters": [
                     {
                         "type": "file",
-                        "description": "File to upload",
+                        "description": "Migration SQL file",
                         "name": "file",
                         "in": "formData",
                         "required": true
@@ -248,19 +826,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "File uploaded successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/utils.UploadResponse"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid file or no file provided",
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -268,65 +846,163 @@ const docTemplate = `{
                 }
             }
         },
-        "/health": {
+        "/schema/migrations": {
             "get": {
-                "description": "Health check endpoint",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the status of database migrations",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "health"
+                    "generator"
                 ],
-                "summary": "Health check",
+                "summary": "Get migration status",
                 "responses": {
                     "200": {
-                        "description": "Service is healthy",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controllers.HealthResponse"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     }
                 }
             }
         },
-        "/health/live": {
+        "/schema/models": {
             "get": {
-                "description": "Liveness check endpoint",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "List all generated model files",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "health"
+                    "generator"
                 ],
-                "summary": "Liveness check",
+                "summary": "List generated models",
                 "responses": {
                     "200": {
-                        "description": "Service is alive",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controllers.LivenessResponse"
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     }
                 }
             }
         },
-        "/health/ready": {
+        "/schema/template": {
             "get": {
-                "description": "Readiness check endpoint",
+                "description": "Get a JSON template for creating schemas",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "health"
+                    "generator"
                 ],
-                "summary": "Readiness check",
+                "summary": "Get schema template",
                 "responses": {
                     "200": {
-                        "description": "Service is ready",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controllers.ReadinessResponse"
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/schema/upload": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate CRUD APIs from a JSON schema file",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "generator"
+                ],
+                "summary": "Generate APIs from JSON file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "JSON schema file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
                         }
                     },
-                    "503": {
-                        "description": "Service is not ready",
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/schema/validate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Validate a schema definition before generation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "generator"
+                ],
+                "summary": "Validate schema",
+                "parameters": [
+                    {
+                        "description": "Schema definition",
+                        "name": "schema",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/generators.SchemaModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -336,249 +1012,221 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controllers.HealthResponse": {
+        "generators.SchemaField": {
             "type": "object",
             "properties": {
-                "status": {
+                "comment": {
                     "type": "string"
                 },
-                "timestamp": {
-                    "type": "integer"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "controllers.LivenessResponse": {
-            "type": "object",
-            "properties": {
-                "status": {
+                "go_type": {
                     "type": "string"
                 },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "controllers.LoginRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "example": "user@example.com"
+                "gorm_tag": {
+                    "type": "string"
                 },
-                "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password123"
-                }
-            }
-        },
-        "controllers.LoginResponse": {
-            "type": "object",
-            "properties": {
-                "success": {
+                "index": {
                     "type": "boolean"
                 },
-                "message": {
+                "json_tag": {
                     "type": "string"
                 },
-                "data": {
-                    "type": "object",
-                    "properties": {
-                        "token": {
-                            "type": "string"
-                        },
-                        "user": {
-                            "$ref": "#/definitions/utils.UserResponse"
-                        }
+                "name": {
+                    "type": "string"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "unique": {
+                    "type": "boolean"
+                },
+                "validate_tag": {
+                    "type": "string"
+                }
+            }
+        },
+        "generators.SchemaModel": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/generators.SchemaField"
                     }
-                }
-            }
-        },
-        "controllers.ProfileResponse": {
-            "type": "object",
-            "properties": {
-                "success": {
+                },
+                "has_soft_delete": {
                     "type": "boolean"
                 },
-                "message": {
-                    "type": "string"
-                },
-                "data": {
-                    "$ref": "#/definitions/utils.UserResponse"
-                }
-            }
-        },
-        "controllers.ReadinessResponse": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "controllers.RegisterRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password",
-                "name"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "format": "email",
-                    "example": "user@example.com"
+                "has_timestamps": {
+                    "type": "boolean"
                 },
                 "name": {
-                    "type": "string",
-                    "minLength": 2,
-                    "example": "John Doe"
+                    "type": "string"
                 },
-                "password": {
-                    "type": "string",
-                    "minLength": 8,
-                    "example": "password123"
+                "package": {
+                    "type": "string"
+                },
+                "table_name": {
+                    "type": "string"
                 }
             }
         },
-        "controllers.RegisterResponse": {
+        "models.Category": {
             "type": "object",
             "properties": {
-                "success": {
-                    "type": "boolean"
-                },
-                "message": {
+                "created_at": {
                     "type": "string"
                 },
-                "data": {
-                    "$ref": "#/definitions/utils.UserResponse"
-                }
-            }
-        },
-        "controllers.UpdateProfileRequest": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "minLength": 2,
-                    "example": "John Doe"
-                }
-            }
-        },
-        "utils.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "success": {
-                    "type": "boolean"
-                },
-                "message": {
+                "description": {
+                    "description": "Category description",
                     "type": "string"
                 },
-                "error": {
-                    "type": "string"
-                },
-                "code": {
-                    "type": "integer"
-                }
-            }
-        },
-        "utils.SuccessResponse": {
-            "type": "object",
-            "properties": {
-                "success": {
-                    "type": "boolean"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "data": {
-                    "type": "object"
-                }
-            }
-        },
-        "utils.UploadResponse": {
-            "type": "object",
-            "properties": {
-                "filename": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "utils.UserResponse": {
-            "type": "object",
-            "properties": {
                 "id": {
                     "type": "integer"
                 },
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
                 "is_active": {
+                    "description": "Whether the category is active",
                     "type": "boolean"
                 },
-                "created_at": {
+                "name": {
+                    "description": "Category name",
                     "type": "string"
+                },
+                "parent_id": {
+                    "description": "Parent category ID for hierarchical structure",
+                    "type": "integer"
+                },
+                "slug": {
+                    "description": "URL-friendly category identifier",
+                    "type": "string"
+                },
+                "sort_order": {
+                    "description": "Sort order for display",
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "utils.ValidationErrorResponse": {
+        "models.Order": {
             "type": "object",
             "properties": {
-                "success": {
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_id": {
+                    "description": "Customer ID",
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "notes": {
+                    "description": "Order notes",
+                    "type": "string"
+                },
+                "order_number": {
+                    "description": "Unique order number",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Order status",
+                    "type": "string"
+                },
+                "total_amount": {
+                    "description": "Total order amount",
+                    "type": "number"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Product": {
+            "type": "object",
+            "properties": {
+                "category_id": {
+                    "description": "Product category ID",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Product description",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "description": "Whether the product is active",
                     "type": "boolean"
                 },
+                "name": {
+                    "description": "Product name",
+                    "type": "string"
+                },
+                "price": {
+                    "description": "Product price",
+                    "type": "number"
+                },
+                "sku": {
+                    "description": "Stock Keeping Unit",
+                    "type": "string"
+                },
+                "stock": {
+                    "description": "Available stock quantity",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "utils.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
                 "message": {
                     "type": "string"
                 },
-                "errors": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                "success": {
+                    "type": "boolean"
                 }
             }
-        }
-    },
-    "securityDefinitions": {
-        "BearerAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header",
-            "description": "Type 'Bearer' followed by a space and JWT token"
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "localhost:8081",
-	BasePath:         "/",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "Mobile Backend API",
-	Description:      "A comprehensive mobile backend API with authentication, file upload, and more",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

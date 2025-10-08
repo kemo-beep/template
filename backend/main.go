@@ -85,6 +85,10 @@ func main() {
 	// Setup generator routes
 	routes.SetupGeneratorRoutes(r, generatorController)
 
+	// Setup generated API routes
+	productController := controllers.NewProductController(config.GetDB())
+	routes.SetupProductRoutes(r, productController)
+
 	// Setup Swagger
 	docs.SwaggerInfo.Title = "Mobile Backend API"
 	docs.SwaggerInfo.Description = "A comprehensive mobile backend API with authentication, file upload, and more"

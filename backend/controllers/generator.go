@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -79,6 +80,18 @@ func (gc *GeneratorController) GenerateFromSchema(c *gin.Context) {
 		// Non-critical error, just log it
 	}
 
+	// Auto-register the generated routes
+	if err := gc.autoRegisterRoutes(c, schema.Name); err != nil {
+		utils.SendErrorResponse(c, "Failed to register routes", http.StatusInternalServerError)
+		return
+	}
+
+	// Regenerate Swagger documentation
+	if err := gc.regenerateSwagger(); err != nil {
+		// Non-critical error, just log it
+		fmt.Printf("Warning: Failed to regenerate Swagger: %v\n", err)
+	}
+
 	utils.SendSuccessResponse(c, gin.H{
 		"model":  schema.Name,
 		"routes": len(routes),
@@ -87,7 +100,9 @@ func (gc *GeneratorController) GenerateFromSchema(c *gin.Context) {
 			"controllers/" + strings.ToLower(schema.Name) + ".go",
 			"routes/" + strings.ToLower(schema.Name) + "_routes.go",
 		},
-	}, "APIs generated successfully")
+		"registered":      true,
+		"swagger_updated": true,
+	}, "APIs generated and registered successfully")
 }
 
 // GenerateFromJSONFile generates APIs from JSON schema file
@@ -280,9 +295,22 @@ func (gc *GeneratorController) CleanupModel(c *gin.Context) {
 		}
 	}
 
+	// Unregister routes from main.go
+	autoRegister := generators.NewAutoRegister("main.go")
+	if err := autoRegister.UnregisterGeneratedRoutes(strings.Title(modelName)); err != nil {
+		fmt.Printf("Warning: Failed to unregister routes: %v\n", err)
+	}
+
+	// Regenerate Swagger documentation
+	if err := gc.regenerateSwagger(); err != nil {
+		fmt.Printf("Warning: Failed to regenerate Swagger: %v\n", err)
+	}
+
 	utils.SendSuccessResponse(c, gin.H{
-		"model":         modelName,
-		"removed_files": removedFiles,
+		"model":               modelName,
+		"removed_files":       removedFiles,
+		"routes_unregistered": true,
+		"swagger_updated":     true,
 	}, "Model cleanup completed")
 }
 
@@ -418,4 +446,30 @@ func (gc *GeneratorController) GetMigrationStatus(c *gin.Context) {
 		"migrations": migrations,
 		"count":      len(migrations),
 	}, "Migration status retrieved successfully")
+}
+
+// autoRegisterRoutes automatically registers generated routes
+func (gc *GeneratorController) autoRegisterRoutes(c *gin.Context, modelName string) error {
+	// Create auto-register instance
+	autoRegister := generators.NewAutoRegister("main.go")
+
+	// Register the generated routes
+	if err := autoRegister.RegisterGeneratedRoutes(modelName); err != nil {
+		return fmt.Errorf("failed to register routes: %w", err)
+	}
+
+	return nil
+}
+
+// regenerateSwagger regenerates the Swagger documentation
+func (gc *GeneratorController) regenerateSwagger() error {
+	// Create auto-register instance
+	autoRegister := generators.NewAutoRegister("main.go")
+
+	// Regenerate Swagger docs
+	if err := autoRegister.RegenerateSwagger(); err != nil {
+		return fmt.Errorf("failed to regenerate Swagger: %w", err)
+	}
+
+	return nil
 }

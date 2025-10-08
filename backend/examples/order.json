@@ -1,0 +1,70 @@
+{
+    "name": "Order",
+    "package": "models",
+    "table_name": "orders",
+    "has_timestamps": true,
+    "has_soft_delete": true,
+    "comment": "Customer orders for e-commerce",
+    "fields": [
+        {
+            "name": "OrderNumber",
+            "type": "VARCHAR(50)",
+            "go_type": "string",
+            "json_tag": "json:\"order_number\"",
+            "gorm_tag": "gorm:\"not null;uniqueIndex\"",
+            "validate_tag": "validate:\"required,min=5,max=50\"",
+            "required": true,
+            "unique": true,
+            "index": false,
+            "comment": "Unique order number"
+        },
+        {
+            "name": "CustomerID",
+            "type": "INTEGER",
+            "go_type": "uint",
+            "json_tag": "json:\"customer_id\"",
+            "gorm_tag": "gorm:\"not null;index\"",
+            "validate_tag": "validate:\"required\"",
+            "required": true,
+            "unique": false,
+            "index": true,
+            "comment": "Customer ID"
+        },
+        {
+            "name": "TotalAmount",
+            "type": "DECIMAL(10,2)",
+            "go_type": "float64",
+            "json_tag": "json:\"total_amount\"",
+            "gorm_tag": "gorm:\"type:decimal(10,2);not null\"",
+            "validate_tag": "validate:\"required,gt=0\"",
+            "required": true,
+            "unique": false,
+            "index": false,
+            "comment": "Total order amount"
+        },
+        {
+            "name": "Status",
+            "type": "VARCHAR(20)",
+            "go_type": "string",
+            "json_tag": "json:\"status\"",
+            "gorm_tag": "gorm:\"not null;default:'pending'\"",
+            "validate_tag": "validate:\"required,oneof=pending processing shipped delivered cancelled\"",
+            "required": true,
+            "unique": false,
+            "index": false,
+            "comment": "Order status"
+        },
+        {
+            "name": "Notes",
+            "type": "TEXT",
+            "go_type": "string",
+            "json_tag": "json:\"notes\"",
+            "gorm_tag": "gorm:\"type:text\"",
+            "validate_tag": "validate:\"max=1000\"",
+            "required": false,
+            "unique": false,
+            "index": false,
+            "comment": "Order notes"
+        }
+    ]
+}

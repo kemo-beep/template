@@ -1,0 +1,775 @@
+definitions:
+  generators.SchemaField:
+    properties:
+      comment:
+        type: string
+      go_type:
+        type: string
+      gorm_tag:
+        type: string
+      index:
+        type: boolean
+      json_tag:
+        type: string
+      name:
+        type: string
+      required:
+        type: boolean
+      type:
+        type: string
+      unique:
+        type: boolean
+      validate_tag:
+        type: string
+    type: object
+  generators.SchemaModel:
+    properties:
+      comment:
+        type: string
+      fields:
+        items:
+          $ref: '#/definitions/generators.SchemaField'
+        type: array
+      has_soft_delete:
+        type: boolean
+      has_timestamps:
+        type: boolean
+      name:
+        type: string
+      package:
+        type: string
+      table_name:
+        type: string
+    type: object
+  models.Category:
+    properties:
+      created_at:
+        type: string
+      description:
+        description: Category description
+        type: string
+      id:
+        type: integer
+      is_active:
+        description: Whether the category is active
+        type: boolean
+      name:
+        description: Category name
+        type: string
+      parent_id:
+        description: Parent category ID for hierarchical structure
+        type: integer
+      slug:
+        description: URL-friendly category identifier
+        type: string
+      sort_order:
+        description: Sort order for display
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.Order:
+    properties:
+      created_at:
+        type: string
+      customer_id:
+        description: Customer ID
+        type: integer
+      id:
+        type: integer
+      notes:
+        description: Order notes
+        type: string
+      order_number:
+        description: Unique order number
+        type: string
+      status:
+        description: Order status
+        type: string
+      total_amount:
+        description: Total order amount
+        type: number
+      updated_at:
+        type: string
+    type: object
+  models.Product:
+    properties:
+      category_id:
+        description: Product category ID
+        type: integer
+      created_at:
+        type: string
+      description:
+        description: Product description
+        type: string
+      id:
+        type: integer
+      is_active:
+        description: Whether the product is active
+        type: boolean
+      name:
+        description: Product name
+        type: string
+      price:
+        description: Product price
+        type: number
+      sku:
+        description: Stock Keeping Unit
+        type: string
+      stock:
+        description: Available stock quantity
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  utils.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      error:
+        type: string
+      success:
+        type: boolean
+    type: object
+  utils.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+info:
+  contact: {}
+paths:
+  /category:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all Category records
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Category list
+      tags:
+      - Category
+    post:
+      consumes:
+      - application/json
+      description: Create a new Category record
+      parameters:
+      - description: Category data
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/models.Category'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Category
+      tags:
+      - Category
+  /category/{id}:
+    delete:
+      description: Delete Category record by ID
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Delete Category
+    get:
+      consumes:
+      - application/json
+      description: Get Category record by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Category by ID
+      tags:
+      - Category
+    put:
+      consumes:
+      - application/json
+      description: Update Category record by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Category data
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/models.Category'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Category
+      tags:
+      - Category
+  /order:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all Order records
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Order list
+      tags:
+      - Order
+    post:
+      consumes:
+      - application/json
+      description: Create a new Order record
+      parameters:
+      - description: Order data
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/models.Order'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Order
+      tags:
+      - Order
+  /order/{id}:
+    delete:
+      description: Delete Order record by ID
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Delete Order
+    get:
+      consumes:
+      - application/json
+      description: Get Order record by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Order by ID
+      tags:
+      - Order
+    put:
+      consumes:
+      - application/json
+      description: Update Order record by ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Order data
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/models.Order'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Order
+      tags:
+      - Order
+  /product:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all Product records
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Product list
+      tags:
+      - Product
+    post:
+      consumes:
+      - application/json
+      description: Create a new Product record
+      parameters:
+      - description: Product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/models.Product'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Product
+      tags:
+      - Product
+  /product/{id}:
+    delete:
+      description: Delete Product record by ID
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Delete Product
+    get:
+      consumes:
+      - application/json
+      description: Get Product record by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get Product by ID
+      tags:
+      - Product
+    put:
+      consumes:
+      - application/json
+      description: Update Product record by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/models.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update Product
+      tags:
+      - Product
+  /schema/cleanup/{model}:
+    delete:
+      description: Remove generated files for a specific model
+      parameters:
+      - description: Model name
+        in: path
+        name: model
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cleanup model
+      tags:
+      - generator
+  /schema/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generate CRUD APIs from a JSON schema definition
+      parameters:
+      - description: Schema definition
+        in: body
+        name: schema
+        required: true
+        schema:
+          $ref: '#/definitions/generators.SchemaModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Generate APIs from schema
+      tags:
+      - generator
+  /schema/generate-all:
+    post:
+      description: Generate CRUD APIs for all existing database tables
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Generate APIs for all tables
+      tags:
+      - generator
+  /schema/migration:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Generate CRUD APIs from a database migration file
+      parameters:
+      - description: Migration SQL file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Generate APIs from migration
+      tags:
+      - generator
+  /schema/migrations:
+    get:
+      description: Get the status of database migrations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+      security:
+      - BearerAuth: []
+      summary: Get migration status
+      tags:
+      - generator
+  /schema/models:
+    get:
+      description: List all generated model files
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+      security:
+      - BearerAuth: []
+      summary: List generated models
+      tags:
+      - generator
+  /schema/template:
+    get:
+      description: Get a JSON template for creating schemas
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+      summary: Get schema template
+      tags:
+      - generator
+  /schema/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Generate CRUD APIs from a JSON schema file
+      parameters:
+      - description: JSON schema file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Generate APIs from JSON file
+      tags:
+      - generator
+  /schema/validate:
+    post:
+      consumes:
+      - application/json
+      description: Validate a schema definition before generation
+      parameters:
+      - description: Schema definition
+        in: body
+        name: schema
+        required: true
+        schema:
+          $ref: '#/definitions/generators.SchemaModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Validate schema
+      tags:
+      - generator
+swagger: "2.0"
