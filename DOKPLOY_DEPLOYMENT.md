@@ -30,19 +30,28 @@ In the Dokploy project settings, add these environment variables:
 
 #### Required Variables
 ```env
+# Database Configuration (REQUIRED)
+DATABASE_URL=postgres://appuser:apppass@postgres:5432/appdb?sslmode=disable
 POSTGRES_PASSWORD=your_secure_database_password_here
 JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
+
+# Redis Configuration (REQUIRED)
+REDIS_URL=redis:6379
+
+# Optional Variables
 CORS_ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 GRAFANA_ADMIN_PASSWORD=your_grafana_admin_password
-```
-
-#### Optional Variables
-```env
 POSTGRES_DB=appdb
 POSTGRES_USER=appuser
 GIN_MODE=release
 LOG_LEVEL=info
 ```
+
+**⚠️ Important Notes:**
+- `DATABASE_URL` must use `postgres` as the hostname (not `localhost`) since containers communicate via Docker network
+- `REDIS_URL` must use `redis` as the hostname (not `localhost`)
+- Make sure to replace `your_secure_database_password_here` with a strong password
+- Make sure to replace `your_super_secret_jwt_key_change_this_in_production` with a secure JWT secret
 
 ### Step 4: Configure Docker Compose
 
@@ -74,6 +83,8 @@ The `docker-compose.dokploy.yml` file includes:
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
+| `DATABASE_URL` | Complete database connection string | Yes | `postgres://appuser:apppass@postgres:5432/appdb?sslmode=disable` |
+| `REDIS_URL` | Redis connection string | Yes | `redis:6379` |
 | `POSTGRES_PASSWORD` | Database password | Yes | - |
 | `JWT_SECRET` | JWT signing secret | Yes | - |
 | `CORS_ALLOWED_ORIGINS` | Allowed CORS origins | No | `*` |
