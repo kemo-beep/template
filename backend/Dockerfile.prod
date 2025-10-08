@@ -1,8 +1,9 @@
 # Build stage
 FROM golang:1.24-alpine AS builder
 
-# Install git and ca-certificates
+# Install git, ca-certificates, and swag
 RUN apk add --no-cache git ca-certificates
+RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 # Set working directory
 WORKDIR /app
@@ -22,7 +23,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-w -s' -o 
 # Final stage
 FROM alpine:latest
 
-# Install ca-certificates, timezone data, postgresql-client, and redis
+# Install ca-certificates, timezone data, postgresql-client, redis, and swag
 RUN apk --no-cache add ca-certificates tzdata postgresql-client redis
 
 # Create non-root user
@@ -31,11 +32,36 @@ RUN adduser -D -s /bin/sh appuser
 # Set working directory
 WORKDIR /app
 
-# Copy binary from builder stage
+# Copy binary, source code, and swag from builder stage
 COPY --from=builder /app/main .
+COPY --from=builder /app/controllers ./controllers
+COPY --from=builder /app/models ./models
+COPY --from=builder /app/utils ./utils
+COPY --from=builder /app/generators ./generators
+COPY --from=builder /go/bin/swag /usr/local/bin/swag
 
 # Create necessary directories
-RUN mkdir -p uploads logs && chown -R appuser:appuser uploads logs
+RUN mkdir -p uploads logs
+
+# Create startup script
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'if command -v swag &> /dev/null; then' >> /app/start.sh && \
+    echo '    echo "Regenerating Swagger documentation..."' >> /app/start.sh && \
+    echo '    swag init' >> /app/start.sh && \
+    echo '    if [ $? -eq 0 ]; then' >> /app/start.sh && \
+    echo '        echo "✅ Swagger documentation regenerated successfully"' >> /app/start.sh && \
+    echo '    else' >> /app/start.sh && \
+    echo '        echo "⚠️  Warning: Failed to regenerate Swagger docs, continuing with existing docs"' >> /app/start.sh && \
+    echo '    fi' >> /app/start.sh && \
+    echo 'else' >> /app/start.sh && \
+    echo '    echo "⚠️  Warning: swag command not found, skipping Swagger regeneration"' >> /app/start.sh && \
+    echo 'fi' >> /app/start.sh && \
+    echo 'echo "Starting application..."' >> /app/start.sh && \
+    echo './main' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Set ownership
+RUN chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
@@ -47,5 +73,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
-# Run the application
-CMD ["./main"]
+# Run the application with Swagger regeneration
+CMD ["/app/start.sh"]

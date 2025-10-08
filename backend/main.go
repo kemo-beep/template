@@ -11,8 +11,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
 	"time"
@@ -98,11 +100,19 @@ func main() {
 	productController := controllers.NewProductController(config.GetDB())
 	routes.SetupProductRoutes(r, productController)
 
+	// Regenerate Swagger documentation on startup
+	logger.Info("Regenerating Swagger documentation...")
+	if err := regenerateSwaggerDocs(); err != nil {
+		logger.Warn("Failed to regenerate Swagger docs", zap.Error(err))
+	} else {
+		logger.Info("Swagger documentation regenerated successfully")
+	}
+
 	// Setup Swagger
 	docs.SwaggerInfo.Title = "Mobile Backend API"
 	docs.SwaggerInfo.Description = "A comprehensive mobile backend API with authentication, file upload, and more"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:8081"
+	docs.SwaggerInfo.Host = "localhost:8080"
 	docs.SwaggerInfo.BasePath = "/"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -140,4 +150,15 @@ func main() {
 	}
 
 	logger.Info("Server exited")
+}
+
+// regenerateSwaggerDocs runs swag init to regenerate Swagger documentation
+func regenerateSwaggerDocs() error {
+	cmd := exec.Command("swag", "init")
+	cmd.Dir = "."
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to regenerate Swagger docs: %v, output: %s", err, string(output))
+	}
+	return nil
 }
