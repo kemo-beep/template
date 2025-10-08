@@ -10,7 +10,8 @@ import (
 
 func SetupRoutes(r *gin.Engine, healthController *controllers.HealthController,
 	authController *controllers.AuthController, userController *controllers.UserController,
-	uploadController *controllers.UploadController, generatorController *controllers.GeneratorController) {
+	uploadController *controllers.UploadController, generatorController *controllers.GeneratorController,
+	oauth2Controller *controllers.OAuth2Controller) {
 
 	// Health check routes
 	r.GET("/health", healthController.HealthCheck)
@@ -25,6 +26,15 @@ func SetupRoutes(r *gin.Engine, healthController *controllers.HealthController,
 		{
 			auth.POST("/register", authController.Register)
 			auth.POST("/login", authController.Login)
+			auth.POST("/refresh", authController.RefreshToken)
+
+			// OAuth2 routes
+			oauth2 := auth.Group("/oauth2")
+			{
+				oauth2.GET("/providers", oauth2Controller.OAuth2Providers)
+				oauth2.GET("/:provider", oauth2Controller.OAuth2Login)
+				oauth2.GET("/callback", oauth2Controller.OAuth2Callback)
+			}
 		}
 
 		// Protected routes

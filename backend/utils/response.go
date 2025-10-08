@@ -39,8 +39,22 @@ type UserResponse struct {
 
 // LoginResponse represents a login response
 type LoginResponse struct {
-	User  UserResponse `json:"user"`
-	Token string       `json:"token"`
+	User         UserResponse `json:"user"`
+	AccessToken  string       `json:"access_token"`
+	RefreshToken string       `json:"refresh_token"`
+	ExpiresIn    int64        `json:"expires_in"` // seconds
+}
+
+// RefreshTokenRequest represents a refresh token request
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+// RefreshTokenResponse represents a refresh token response
+type RefreshTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"` // seconds
 }
 
 // NewSuccessResponse creates a new success response
@@ -134,4 +148,14 @@ func SendInternalServerErrorResponse(c *gin.Context, message ...string) {
 		msg = message[0]
 	}
 	c.JSON(500, NewErrorResponse(msg, 500))
+}
+
+// GenerateRandomString generates a random string of specified length
+func GenerateRandomString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[time.Now().UnixNano()%int64(len(charset))]
+	}
+	return string(b)
 }

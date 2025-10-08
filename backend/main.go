@@ -68,6 +68,7 @@ func main() {
 	// Initialize services
 	cacheService := services.NewCacheService(redisClient)
 	authService := services.NewAuthService(config.GetDB(), cacheService)
+	oauth2Service := services.NewOAuth2Service(config.GetDB(), redisClient)
 
 	// Initialize controllers
 	healthController := controllers.NewHealthController(config.GetDB())
@@ -75,6 +76,7 @@ func main() {
 	userController := controllers.NewUserController(authService)
 	uploadController := controllers.NewUploadController("./uploads")
 	generatorController := controllers.NewGeneratorController(config.GetDB())
+	oauth2Controller := controllers.NewOAuth2Controller(oauth2Service, authService)
 
 	// Setup Gin router
 	if os.Getenv("GIN_MODE") == "release" {
@@ -91,7 +93,7 @@ func main() {
 	r.Use(middleware.PrometheusMiddleware())
 
 	// Setup routes
-	routes.SetupRoutes(r, healthController, authController, userController, uploadController, generatorController)
+	routes.SetupRoutes(r, healthController, authController, userController, uploadController, generatorController, oauth2Controller)
 
 	// Setup generator routes
 	routes.SetupGeneratorRoutes(r, generatorController)
