@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mobile-backend
+  namespace: mobile-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mobile-backend
+  template:
+    metadata:
+      labels:
+        app: mobile-backend
+    spec:
+      containers:
+        - name: mobile-backend
+          image: mobile-backend:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: mobile-backend-secrets
+                  key: database-url
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: mobile-backend-secrets
+                  key: jwt-secret
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mobile-backend-config
+                  key: redis-url
+            - name: GIN_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: mobile-backend-config
+                  key: gin-mode
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: mobile-backend-config
+                  key: log-level
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5

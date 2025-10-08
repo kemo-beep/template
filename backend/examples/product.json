@@ -1,0 +1,82 @@
+{
+    "name": "Product",
+    "package": "models",
+    "table_name": "products",
+    "has_timestamps": true,
+    "has_soft_delete": true,
+    "comment": "Product catalog for e-commerce",
+    "fields": [
+        {
+            "name": "Name",
+            "type": "VARCHAR(255)",
+            "go_type": "string",
+            "json_tag": "json:\"name\"",
+            "gorm_tag": "gorm:\"not null;uniqueIndex\"",
+            "validate_tag": "validate:\"required,min=3,max=255\"",
+            "required": true,
+            "unique": true,
+            "comment": "Product name"
+        },
+        {
+            "name": "Description",
+            "type": "TEXT",
+            "go_type": "string",
+            "json_tag": "json:\"description\"",
+            "gorm_tag": "gorm:\"type:text\"",
+            "validate_tag": "validate:\"max=1000\"",
+            "required": false,
+            "comment": "Product description"
+        },
+        {
+            "name": "Price",
+            "type": "DECIMAL(10,2)",
+            "go_type": "float64",
+            "json_tag": "json:\"price\"",
+            "gorm_tag": "gorm:\"type:decimal(10,2);not null\"",
+            "validate_tag": "validate:\"required,min=0\"",
+            "required": true,
+            "comment": "Product price"
+        },
+        {
+            "name": "SKU",
+            "type": "VARCHAR(100)",
+            "go_type": "string",
+            "json_tag": "json:\"sku\"",
+            "gorm_tag": "gorm:\"not null;uniqueIndex\"",
+            "validate_tag": "validate:\"required,min=3,max=100\"",
+            "required": true,
+            "unique": true,
+            "comment": "Stock Keeping Unit"
+        },
+        {
+            "name": "Stock",
+            "type": "INTEGER",
+            "go_type": "int",
+            "json_tag": "json:\"stock\"",
+            "gorm_tag": "gorm:\"not null;default:0\"",
+            "validate_tag": "validate:\"min=0\"",
+            "required": true,
+            "comment": "Available stock quantity"
+        },
+        {
+            "name": "IsActive",
+            "type": "BOOLEAN",
+            "go_type": "bool",
+            "json_tag": "json:\"is_active\"",
+            "gorm_tag": "gorm:\"default:true\"",
+            "validate_tag": "",
+            "required": false,
+            "comment": "Whether the product is active"
+        },
+        {
+            "name": "CategoryID",
+            "type": "INTEGER",
+            "go_type": "uint",
+            "json_tag": "json:\"category_id\"",
+            "gorm_tag": "gorm:\"not null;index\"",
+            "validate_tag": "validate:\"required\"",
+            "required": true,
+            "comment": "Product category ID"
+        }
+    ]
+}

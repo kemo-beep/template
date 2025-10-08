@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mobile-backend-config
+  namespace: mobile-backend
+data:
+  GIN_MODE: "release"
+  LOG_LEVEL: "info"
+  REDIS_URL: "redis://redis-service:6379"

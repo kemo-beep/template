@@ -1,0 +1,72 @@
+{
+    "name": "Category",
+    "package": "models",
+    "table_name": "categories",
+    "has_timestamps": true,
+    "has_soft_delete": true,
+    "comment": "Product categories for organization",
+    "fields": [
+        {
+            "name": "Name",
+            "type": "VARCHAR(255)",
+            "go_type": "string",
+            "json_tag": "json:\"name\"",
+            "gorm_tag": "gorm:\"not null;uniqueIndex\"",
+            "validate_tag": "validate:\"required,min=3,max=255\"",
+            "required": true,
+            "unique": true,
+            "comment": "Category name"
+        },
+        {
+            "name": "Description",
+            "type": "TEXT",
+            "go_type": "string",
+            "json_tag": "json:\"description\"",
+            "gorm_tag": "gorm:\"type:text\"",
+            "validate_tag": "validate:\"max=1000\"",
+            "required": false,
+            "comment": "Category description"
+        },
+        {
+            "name": "Slug",
+            "type": "VARCHAR(255)",
+            "go_type": "string",
+            "json_tag": "json:\"slug\"",
+            "gorm_tag": "gorm:\"not null;uniqueIndex\"",
+            "validate_tag": "validate:\"required,min=3,max=255\"",
+            "required": true,
+            "unique": true,
+            "comment": "URL-friendly category identifier"
+        },
+        {
+            "name": "ParentID",
+            "type": "INTEGER",
+            "go_type": "*uint",
+            "json_tag": "json:\"parent_id,omitempty\"",
+            "gorm_tag": "gorm:\"index\"",
+            "validate_tag": "",
+            "required": false,
+            "comment": "Parent category ID for hierarchical structure"
+        },
+        {
+            "name": "IsActive",
+            "type": "BOOLEAN",
+            "go_type": "bool",
+            "json_tag": "json:\"is_active\"",
+            "gorm_tag": "gorm:\"default:true\"",
+            "validate_tag": "",
+            "required": false,
+            "comment": "Whether the category is active"
+        },
+        {
+            "name": "SortOrder",
+            "type": "INTEGER",
+            "go_type": "int",
+            "json_tag": "json:\"sort_order\"",
+            "gorm_tag": "gorm:\"default:0\"",
+            "validate_tag": "validate:\"min=0\"",
+            "required": false,
+            "comment": "Sort order for display"
+        }
+    ]
+}
