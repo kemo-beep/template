@@ -49,7 +49,7 @@ LOG_LEVEL=info
 1. **Docker Compose File**: Use `docker-compose.dokploy.yml`
 2. **Port Mapping**: 
    - `8080:8080` (Main API)
-   - `3000:3000` (Grafana - Optional)
+   - `3001:3000` (Grafana - Optional)
    - `9090:9090` (Prometheus - Optional)
 
 ### Step 5: Deploy
@@ -97,7 +97,7 @@ After deployment, you can access:
 
 - **API**: `https://yourdomain.com:8080`
 - **API Documentation**: `https://yourdomain.com:8080/swagger/index.html`
-- **Grafana**: `https://yourdomain.com:3000` (admin/your_password)
+- **Grafana**: `https://yourdomain.com:3001` (admin/your_password)
 - **Prometheus**: `https://yourdomain.com:9090`
 
 ### Grafana Dashboards

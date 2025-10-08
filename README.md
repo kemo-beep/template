@@ -295,7 +295,7 @@ GIN_MODE=debug
 PORT=8080
 
 # CORS
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+CORS_ALLOWED_ORIGINS=http://localhost:3001,http://localhost:8080
 
 # Email (optional)
 SMTP_HOST=smtp.gmail.com
