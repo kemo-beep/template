@@ -10,7 +10,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgres://appuser:apppass@postgres:5432/appdb?sslmode=disable}
+      - DATABASE_URL=${DATABASE_URL:-postgres://appuser:apppass@postgres:5435/appdb?sslmode=disable}
       - REDIS_URL=${REDIS_URL:-redis:6379}
       - JWT_SECRET=${JWT_SECRET:-your_super_secret_jwt_key_change_this_in_production}
       - GIN_MODE=release

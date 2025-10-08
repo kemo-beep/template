@@ -11,7 +11,7 @@ services:
       - "8080:8080"
     environment:
       # Use your existing PostgreSQL on localhost:5432
-      - DATABASE_URL=postgres://appuser:apppass@host.docker.internal:5432/appdb?sslmode=disable
+      - DATABASE_URL=postgres://appuser:apppass@host.docker.internal:5435/appdb?sslmode=disable
       - REDIS_URL=redis:6379
       - JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
       - GIN_MODE=release
