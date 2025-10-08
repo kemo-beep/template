@@ -29,6 +29,19 @@ type UploadResponse struct {
 	Type     string `json:"type"`
 }
 
+// UploadFile godoc
+// @Summary Upload a single file
+// @Description Upload a single file to the server
+// @Tags upload
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param file formData file true "File to upload"
+// @Success 200 {object} utils.SuccessResponse{data=UploadResponse}
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/v1/upload [post]
 func (uc *UploadController) UploadFile(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {

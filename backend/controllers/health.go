@@ -16,6 +16,14 @@ func NewHealthController(db *gorm.DB) *HealthController {
 	return &HealthController{db: db}
 }
 
+// HealthCheck godoc
+// @Summary Health check
+// @Description Check if the service is healthy
+// @Tags health
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /health [get]
 func (h *HealthController) HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":    "healthy",
@@ -24,6 +32,15 @@ func (h *HealthController) HealthCheck(c *gin.Context) {
 	})
 }
 
+// ReadinessCheck godoc
+// @Summary Readiness check
+// @Description Check if the service is ready to accept requests
+// @Tags health
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 503 {object} map[string]interface{}
+// @Router /health/ready [get]
 func (h *HealthController) ReadinessCheck(c *gin.Context) {
 	sqlDB, err := h.db.DB()
 	if err != nil {
@@ -48,6 +65,14 @@ func (h *HealthController) ReadinessCheck(c *gin.Context) {
 	})
 }
 
+// LivenessCheck godoc
+// @Summary Liveness check
+// @Description Check if the service is alive
+// @Tags health
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /health/live [get]
 func (h *HealthController) LivenessCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":    "alive",

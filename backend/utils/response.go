@@ -2,6 +2,7 @@ package utils
 
 import (
 	"time"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,6 +35,12 @@ type UserResponse struct {
 	IsActive  bool   `json:"is_active"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
+}
+
+// LoginResponse represents a login response
+type LoginResponse struct {
+	User  UserResponse `json:"user"`
+	Token string       `json:"token"`
 }
 
 // NewSuccessResponse creates a new success response

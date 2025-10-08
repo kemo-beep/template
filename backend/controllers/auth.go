@@ -29,7 +29,18 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-
+// Register godoc
+// @Summary Register a new user
+// @Description Register a new user with email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "User registration data"
+// @Success 201 {object} utils.SuccessResponse{data=utils.UserResponse}
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 409 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/v1/auth/register [post]
 func (ac *AuthController) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -59,6 +70,18 @@ func (ac *AuthController) Register(c *gin.Context) {
 	utils.SendCreatedResponse(c, userResponse, "User created successfully")
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Login user with email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "User login data"
+// @Success 200 {object} utils.SuccessResponse{data=utils.LoginResponse}
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/v1/auth/login [post]
 func (ac *AuthController) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -87,6 +110,17 @@ func (ac *AuthController) Login(c *gin.Context) {
 	}, "Login successful")
 }
 
+// Logout godoc
+// @Summary Logout user
+// @Description Logout user and invalidate session
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.SuccessResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /api/v1/auth/logout [post]
 func (ac *AuthController) Logout(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	token := strings.TrimPrefix(authHeader, "Bearer ")
