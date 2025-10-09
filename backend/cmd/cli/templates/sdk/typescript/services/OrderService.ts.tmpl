@@ -1,0 +1,167 @@
+import { AxiosInstance } from 'axios';
+import { ApiResponse } from '../client';
+
+export interface Order {
+  id: string;
+  userId: string;
+  items: OrderItem[];
+  total: number;
+  status: OrderStatus;
+  shippingAddress: Address;
+  billingAddress: Address;
+  paymentMethod: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+export interface Address {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+
+export interface CreateOrderRequest {
+  items: Omit<OrderItem, 'productName' | 'price' | 'total'>[];
+  shippingAddress: Address;
+  billingAddress?: Address;
+  paymentMethod: string;
+}
+
+export interface UpdateOrderRequest {
+  status?: OrderStatus;
+  shippingAddress?: Address;
+  billingAddress?: Address;
+}
+
+export interface OrderListParams {
+  page?: number;
+  limit?: number;
+  status?: OrderStatus;
+  userId?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface OrderListResponse {
+  orders: Order[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export class OrderService {
+  constructor(private axios: AxiosInstance) {}
+
+  /**
+   * Get all orders with pagination and filtering
+   */
+  async list(params: OrderListParams = {}): Promise<ApiResponse<OrderListResponse>> {
+    const response = await this.axios.get<ApiResponse<OrderListResponse>>('/api/v1/orders', { params });
+    return response.data;
+  }
+
+  /**
+   * Get order by ID
+   */
+  async getById(id: string): Promise<ApiResponse<Order>> {
+    const response = await this.axios.get<ApiResponse<Order>>(`/api/v1/orders/${id}`);
+    return response.data;
+  }
+
+  /**
+   * Create a new order
+   */
+  async create(data: CreateOrderRequest): Promise<ApiResponse<Order>> {
+    const response = await this.axios.post<ApiResponse<Order>>('/api/v1/orders', data);
+    return response.data;
+  }
+
+  /**
+   * Update order by ID
+   */
+  async update(id: string, data: UpdateOrderRequest): Promise<ApiResponse<Order>> {
+    const response = await this.axios.put<ApiResponse<Order>>(`/api/v1/orders/${id}`, data);
+    return response.data;
+  }
+
+  /**
+   * Cancel order by ID
+   */
+  async cancel(id: string): Promise<ApiResponse<Order>> {
+    const response = await this.axios.post<ApiResponse<Order>>(`/api/v1/orders/${id}/cancel`);
+    return response.data;
+  }
+
+  /**
+   * Get orders by user ID
+   */
+  async getByUserId(userId: string, params: Omit<OrderListParams, 'userId'> = {}): Promise<ApiResponse<OrderListResponse>> {
+    return this.list({ ...params, userId });
+  }
+
+  /**
+   * Get orders by status
+   */
+  async getByStatus(status: OrderStatus, params: Omit<OrderListParams, 'status'> = {}): Promise<ApiResponse<OrderListResponse>> {
+    return this.list({ ...params, status });
+  }
+
+  /**
+   * Update order status
+   */
+  async updateStatus(id: string, status: OrderStatus): Promise<ApiResponse<Order>> {
+    const response = await this.axios.patch<ApiResponse<Order>>(`/api/v1/orders/${id}/status`, { status });
+    return response.data;
+  }
+
+  /**
+   * Get order statistics
+   */
+  async getStats(): Promise<ApiResponse<{
+    total: number;
+    pending: number;
+    confirmed: number;
+    shipped: number;
+    delivered: number;
+    cancelled: number;
+    totalRevenue: number;
+  }>> {
+    const response = await this.axios.get<ApiResponse<any>>('/api/v1/orders/stats');
+    return response.data;
+  }
+
+  /**
+   * Get order tracking information
+   */
+  async getTracking(id: string): Promise<ApiResponse<{
+    orderId: string;
+    status: OrderStatus;
+    trackingNumber?: string;
+    carrier?: string;
+    estimatedDelivery?: string;
+    trackingHistory: Array<{
+      status: OrderStatus;
+      timestamp: string;
+      location?: string;
+      description?: string;
+    }>;
+  }>> {
+    const response = await this.axios.get<ApiResponse<any>>(`/api/v1/orders/${id}/tracking`);
+    return response.data;
+  }
+}

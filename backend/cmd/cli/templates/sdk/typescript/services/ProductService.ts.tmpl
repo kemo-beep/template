@@ -1,0 +1,163 @@
+import { AxiosInstance } from 'axios';
+import { ApiResponse } from '../client';
+
+export interface Product {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  category: string;
+  images: string[];
+  isActive: boolean;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateProductRequest {
+  name: string;
+  description?: string;
+  price: number;
+  category: string;
+  images?: string[];
+  stock?: number;
+}
+
+export interface UpdateProductRequest {
+  name?: string;
+  description?: string;
+  price?: number;
+  category?: string;
+  images?: string[];
+  isActive?: boolean;
+  stock?: number;
+}
+
+export interface ProductListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface ProductListResponse {
+  products: Product[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export class ProductService {
+  constructor(private axios: AxiosInstance) {}
+
+  /**
+   * Get all products with pagination and filtering
+   */
+  async list(params: ProductListParams = {}): Promise<ApiResponse<ProductListResponse>> {
+    const response = await this.axios.get<ApiResponse<ProductListResponse>>('/api/v1/products', { params });
+    return response.data;
+  }
+
+  /**
+   * Get product by ID
+   */
+  async getById(id: string): Promise<ApiResponse<Product>> {
+    const response = await this.axios.get<ApiResponse<Product>>(`/api/v1/products/${id}`);
+    return response.data;
+  }
+
+  /**
+   * Create a new product
+   */
+  async create(data: CreateProductRequest): Promise<ApiResponse<Product>> {
+    const response = await this.axios.post<ApiResponse<Product>>('/api/v1/products', data);
+    return response.data;
+  }
+
+  /**
+   * Update product by ID
+   */
+  async update(id: string, data: UpdateProductRequest): Promise<ApiResponse<Product>> {
+    const response = await this.axios.put<ApiResponse<Product>>(`/api/v1/products/${id}`, data);
+    return response.data;
+  }
+
+  /**
+   * Delete product by ID
+   */
+  async delete(id: string): Promise<ApiResponse<void>> {
+    const response = await this.axios.delete<ApiResponse<void>>(`/api/v1/products/${id}`);
+    return response.data;
+  }
+
+  /**
+   * Search products
+   */
+  async search(query: string, params: Omit<ProductListParams, 'search'> = {}): Promise<ApiResponse<ProductListResponse>> {
+    return this.list({ ...params, search: query });
+  }
+
+  /**
+   * Get products by category
+   */
+  async getByCategory(category: string, params: Omit<ProductListParams, 'category'> = {}): Promise<ApiResponse<ProductListResponse>> {
+    return this.list({ ...params, category });
+  }
+
+  /**
+   * Upload product image
+   */
+  async uploadImage(id: string, file: File): Promise<ApiResponse<{ imageUrl: string }>> {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const response = await this.axios.post<ApiResponse<{ imageUrl: string }>>(
+      `/api/v1/products/${id}/images`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Delete product image
+   */
+  async deleteImage(id: string, imageUrl: string): Promise<ApiResponse<void>> {
+    const response = await this.axios.delete<ApiResponse<void>>(`/api/v1/products/${id}/images`, {
+      data: { imageUrl }
+    });
+    return response.data;
+  }
+
+  /**
+   * Update product stock
+   */
+  async updateStock(id: string, stock: number): Promise<ApiResponse<Product>> {
+    const response = await this.axios.patch<ApiResponse<Product>>(`/api/v1/products/${id}/stock`, { stock });
+    return response.data;
+  }
+
+  /**
+   * Get product statistics
+   */
+  async getStats(): Promise<ApiResponse<{
+    total: number;
+    active: number;
+    outOfStock: number;
+    totalValue: number;
+  }>> {
+    const response = await this.axios.get<ApiResponse<any>>('/api/v1/products/stats');
+    return response.data;
+  }
+}

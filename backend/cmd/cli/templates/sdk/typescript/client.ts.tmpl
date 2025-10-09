@@ -1,0 +1,223 @@
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import WebSocket from 'ws';
+import { AuthService } from './services/AuthService';
+import { UserService } from './services/UserService';
+import { ProductService } from './services/ProductService';
+import { OrderService } from './services/OrderService';
+
+export interface MobileBackendConfig {
+  apiKey?: string;
+  baseURL: string;
+  timeout?: number;
+  retries?: number;
+  debug?: boolean;
+}
+
+export interface ApiResponse<T = any> {
+  data: T;
+  message?: string;
+  success: boolean;
+  timestamp: string;
+}
+
+export interface ApiError {
+  message: string;
+  code: string;
+  details?: any;
+  timestamp: string;
+}
+
+export class MobileBackendError extends Error {
+  public code: string;
+  public details?: any;
+  public timestamp: string;
+
+  constructor(error: ApiError) {
+    super(error.message);
+    this.name = 'MobileBackendError';
+    this.code = error.code;
+    this.details = error.details;
+    this.timestamp = error.timestamp;
+  }
+}
+
+export class MobileBackendClient {
+  private axios: AxiosInstance;
+  private ws?: WebSocket;
+  private config: MobileBackendConfig;
+  
+  // Services
+  public auth: AuthService;
+  public users: UserService;
+  public products: ProductService;
+  public orders: OrderService;
+
+  constructor(config: MobileBackendConfig) {
+    this.config = {
+      timeout: 30000,
+      retries: 3,
+      debug: false,
+      ...config,
+    };
+
+    // Initialize Axios instance
+    this.axios = axios.create({
+      baseURL: this.config.baseURL,
+      timeout: this.config.timeout,
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'MobileBackend-SDK-TypeScript/{{.Version}}',
+      },
+    });
+
+    // Add request interceptor for authentication
+    this.axios.interceptors.request.use(
+      (config) => {
+        const token = this.auth?.getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        if (this.config.apiKey) {
+          config.headers['X-API-Key'] = this.config.apiKey;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Add response interceptor for error handling
+    this.axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.data) {
+          throw new MobileBackendError(error.response.data);
+        }
+        throw error;
+      }
+    );
+
+    // Initialize services
+    this.auth = new AuthService(this.axios);
+    this.users = new UserService(this.axios);
+    this.products = new ProductService(this.axios);
+    this.orders = new OrderService(this.axios);
+  }
+
+  /**
+   * Make a raw API request
+   */
+  async request<T = any>(config: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    try {
+      const response: AxiosResponse<ApiResponse<T>> = await this.axios.request(config);
+      return response.data;
+    } catch (error) {
+      if (error instanceof MobileBackendError) {
+        throw error;
+      }
+      throw new MobileBackendError({
+        message: error.message || 'Unknown error occurred',
+        code: 'UNKNOWN_ERROR',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Connect to WebSocket for real-time updates
+   */
+  connectWebSocket(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const wsUrl = this.config.baseURL.replace('http', 'ws') + '/ws';
+      this.ws = new WebSocket(wsUrl);
+
+      this.ws.on('open', () => {
+        if (this.config.debug) {
+          console.log('WebSocket connected');
+        }
+        resolve();
+      });
+
+      this.ws.on('error', (error) => {
+        if (this.config.debug) {
+          console.error('WebSocket error:', error);
+        }
+        reject(error);
+      });
+
+      this.ws.on('close', () => {
+        if (this.config.debug) {
+          console.log('WebSocket disconnected');
+        }
+      });
+    });
+  }
+
+  /**
+   * Disconnect from WebSocket
+   */
+  disconnectWebSocket(): void {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = undefined;
+    }
+  }
+
+  /**
+   * Send message via WebSocket
+   */
+  sendWebSocketMessage(message: any): void {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(message));
+    } else {
+      throw new Error('WebSocket is not connected');
+    }
+  }
+
+  /**
+   * Listen to WebSocket messages
+   */
+  onWebSocketMessage(callback: (message: any) => void): void {
+    if (this.ws) {
+      this.ws.on('message', (data) => {
+        try {
+          const message = JSON.parse(data.toString());
+          callback(message);
+        } catch (error) {
+          if (this.config.debug) {
+            console.error('Failed to parse WebSocket message:', error);
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Get current configuration
+   */
+  getConfig(): MobileBackendConfig {
+    return { ...this.config };
+  }
+
+  /**
+   * Update configuration
+   */
+  updateConfig(newConfig: Partial<MobileBackendConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+    
+    // Update Axios instance
+    this.axios.defaults.baseURL = this.config.baseURL;
+    this.axios.defaults.timeout = this.config.timeout;
+  }
+
+  /**
+   * Health check
+   */
+  async healthCheck(): Promise<boolean> {
+    try {
+      await this.request({ method: 'GET', url: '/health' });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}

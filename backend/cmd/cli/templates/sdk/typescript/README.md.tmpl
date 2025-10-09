@@ -1,0 +1,257 @@
+# {{.PackageName}}
+
+TypeScript/JavaScript SDK for Mobile Backend API
+
+## Installation
+
+```bash
+npm install {{.PackageName}}
+# or
+yarn add {{.PackageName}}
+# or
+pnpm add {{.PackageName}}
+```
+
+## Quick Start
+
+```typescript
+import { MobileBackendClient } from '{{.PackageName}}';
+
+// Initialize the client
+const client = new MobileBackendClient({
+  baseURL: '{{.BaseURL}}',
+  apiKey: 'your-api-key', // optional
+  debug: true // optional
+});
+
+// Authentication
+await client.auth.login({
+  email: 'user@example.com',
+  password: 'password123'
+});
+
+// Use the services
+const users = await client.users.list();
+const products = await client.products.list();
+const orders = await client.orders.list();
+```
+
+## Features
+
+- ✅ **Type Safety**: Full TypeScript definitions
+- ✅ **Auto-completion**: IDE support for all methods
+- ✅ **Error Handling**: Consistent error handling
+- ✅ **Authentication**: Built-in auth management
+- ✅ **Real-time**: WebSocket integration
+- ✅ **Offline Support**: Request queuing and retry
+- ✅ **Browser & Node.js**: Works in both environments
+
+## Services
+
+### Authentication Service
+
+```typescript
+// Register a new user
+await client.auth.register({
+  email: 'user@example.com',
+  password: 'password123',
+  name: 'John Doe'
+});
+
+// Login
+await client.auth.login({
+  email: 'user@example.com',
+  password: 'password123'
+});
+
+// Get current user
+const profile = await client.auth.getProfile();
+
+// Logout
+await client.auth.logout();
+```
+
+### User Service
+
+```typescript
+// List users with pagination
+const users = await client.users.list({
+  page: 1,
+  limit: 10,
+  search: 'john'
+});
+
+// Get user by ID
+const user = await client.users.getById('user-id');
+
+// Create user
+const newUser = await client.users.create({
+  email: 'new@example.com',
+  name: 'New User',
+  password: 'password123'
+});
+
+// Update user
+const updatedUser = await client.users.update('user-id', {
+  name: 'Updated Name'
+});
+```
+
+### Product Service
+
+```typescript
+// List products with filters
+const products = await client.products.list({
+  category: 'electronics',
+  minPrice: 100,
+  maxPrice: 1000
+});
+
+// Search products
+const searchResults = await client.products.search('laptop');
+
+// Create product
+const product = await client.products.create({
+  name: 'New Product',
+  price: 299.99,
+  category: 'electronics',
+  description: 'A great product'
+});
+```
+
+### Order Service
+
+```typescript
+// Create order
+const order = await client.orders.create({
+  items: [
+    {
+      productId: 'product-id',
+      quantity: 2
+    }
+  ],
+  shippingAddress: {
+    street: '123 Main St',
+    city: 'New York',
+    state: 'NY',
+    zipCode: '10001',
+    country: 'US'
+  },
+  paymentMethod: 'card'
+});
+
+// Get order tracking
+const tracking = await client.orders.getTracking('order-id');
+```
+
+## Real-time Features
+
+```typescript
+// Connect to WebSocket
+await client.connectWebSocket();
+
+// Listen to messages
+client.onWebSocketMessage((message) => {
+  console.log('Received:', message);
+});
+
+// Send message
+client.sendWebSocketMessage({
+  type: 'ping',
+  data: { timestamp: Date.now() }
+});
+```
+
+## Error Handling
+
+```typescript
+import { MobileBackendError } from '{{.PackageName}}';
+
+try {
+  await client.users.getById('invalid-id');
+} catch (error) {
+  if (error instanceof MobileBackendError) {
+    console.error('API Error:', error.message);
+    console.error('Error Code:', error.code);
+    console.error('Details:', error.details);
+  } else {
+    console.error('Unknown error:', error);
+  }
+}
+```
+
+## Configuration
+
+```typescript
+const client = new MobileBackendClient({
+  baseURL: 'https://api.example.com',
+  apiKey: 'your-api-key',
+  timeout: 30000,
+  retries: 3,
+  debug: false
+});
+
+// Update configuration
+client.updateConfig({
+  timeout: 60000,
+  debug: true
+});
+```
+
+## Browser Usage
+
+The SDK automatically handles browser-specific features like localStorage for token persistence.
+
+```typescript
+// In browser, tokens are automatically saved to localStorage
+await client.auth.login({ email, password });
+
+// Tokens persist across page reloads
+const isLoggedIn = client.auth.isAuthenticated(); // true
+```
+
+## Node.js Usage
+
+```typescript
+// In Node.js, tokens are stored in memory only
+const client = new MobileBackendClient({
+  baseURL: 'https://api.example.com'
+});
+
+// Manual token management
+await client.auth.login({ email, password });
+const token = client.auth.getToken();
+```
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Build the SDK
+npm run build
+
+# Run tests
+npm test
+
+# Lint code
+npm run lint
+
+# Watch mode for development
+npm run dev
+```
+
+## API Reference
+
+For complete API documentation, visit: [API Documentation]({{.BaseURL}}/docs)
+
+## License
+
+MIT
+
+## Support
+
+- GitHub Issues: [Report a bug](https://github.com/your-org/mobile-backend-sdk/issues)
+- Documentation: [Read the docs](https://docs.example.com)
+- Email: support@example.com

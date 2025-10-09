@@ -19,7 +19,24 @@ cp env.example .env
 # Edit .env with your configuration
 ```
 
-### 2. Start Development Environment
+### 2. Install CLI Tools (Optional but Recommended)
+
+```bash
+# Navigate to CLI directory
+cd backend/cmd/cli
+
+# Install the CLI
+./install.sh
+
+# Or build manually
+go build -o mobile-backend-cli .
+sudo mv mobile-backend-cli /usr/local/bin/
+
+# Verify installation
+mobile-backend-cli --version
+```
+
+### 3. Start Development Environment
 
 ```bash
 # Option 1: Using Make (recommended)
@@ -30,17 +47,131 @@ docker-compose up -d
 
 # Option 3: Using the development script
 ./scripts/dev.sh
+
+# Option 4: Using CLI tools
+mobile-backend-cli deploy --env development
 ```
 
-### 3. Access Services
+### 4. Access Services
 
 - **Backend API**: http://localhost:8080
 - **API Documentation**: http://localhost:8080/swagger/index.html
+- **API Explorer**: http://localhost:3000 (if using CLI)
 - **Database**: localhost:5432
 - **Redis**: localhost:6379
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3001 (admin/admin)
 - **Jaeger**: http://localhost:16686
+
+## 🛠️ CLI Tools & API Explorer
+
+### 🚀 **Mobile Backend CLI**
+
+A comprehensive command-line tool that provides everything you need for mobile backend development:
+
+#### **Code Generation & Scaffolding**
+```bash
+# Generate complete API modules
+mobile-backend-cli generate api User
+mobile-backend-cli generate api Product
+
+# Generate individual components
+mobile-backend-cli generate model Order
+mobile-backend-cli generate controller OrderController
+mobile-backend-cli generate service OrderService
+mobile-backend-cli generate test OrderControllerTest
+```
+
+#### **API Testing & Exploration**
+```bash
+# Interactive web-based API explorer
+mobile-backend-cli explorer --open
+
+# Command-line API testing
+mobile-backend-cli api test GET /users
+mobile-backend-cli api test POST /users -d '{"name":"John","email":"john@example.com"}'
+
+# Health checks and monitoring
+mobile-backend-cli api health
+mobile-backend-cli api list
+```
+
+#### **Database Management**
+```bash
+# Migration management
+mobile-backend-cli db migrate
+mobile-backend-cli db rollback
+mobile-backend-cli db status
+
+# Database operations
+mobile-backend-cli db seed
+mobile-backend-cli db backup
+mobile-backend-cli db restore backup.sql
+mobile-backend-cli db shell
+```
+
+#### **Testing & Quality Assurance**
+```bash
+# Run comprehensive tests
+mobile-backend-cli test unit
+mobile-backend-cli test integration
+mobile-backend-cli test coverage
+
+# Performance testing
+mobile-backend-cli test benchmark
+mobile-backend-cli test load --users 100 --duration 60s
+```
+
+#### **Mobile SDK Generation**
+```bash
+# Generate TypeScript/JavaScript SDK
+mobile-backend-cli sdk --lang typescript --output ./sdks --package my-app-sdk --base-url https://api.example.com
+
+# Generate Swift SDK for iOS
+mobile-backend-cli sdk --lang swift --output ./sdks --package MyAppSDK --base-url https://api.example.com
+
+# Generate Kotlin SDK for Android
+mobile-backend-cli sdk --lang kotlin --output ./sdks --package com.myapp.sdk --base-url https://api.example.com
+
+# Generate Dart SDK for Flutter
+mobile-backend-cli sdk --lang dart --output ./sdks --package my_dart_sdk --base-url https://api.example.com
+```
+
+**Generated SDK Features:**
+- ✅ **Type Safety**: Full type definitions for all languages
+- ✅ **Auto-completion**: IDE support for all methods
+- ✅ **Authentication**: Built-in auth management with token handling
+- ✅ **Error Handling**: Consistent error handling across all SDKs
+- ✅ **Real-time**: WebSocket integration for live updates
+- ✅ **Package Management**: Ready-to-publish packages with proper dependencies
+
+#### **Deployment & DevOps**
+```bash
+# Multi-environment deployment
+mobile-backend-cli deploy --env staging --build
+mobile-backend-cli deploy --env production --build
+
+# Deployment management
+mobile-backend-cli deploy status
+mobile-backend-cli deploy logs --follow
+mobile-backend-cli deploy scale --replicas 3
+```
+
+### 🌐 **Interactive API Explorer**
+
+A modern web-based interface for API testing and exploration:
+
+- **Visual Interface**: Clean, responsive design with dark/light themes
+- **Endpoint Discovery**: Automatically loads and displays available API endpoints
+- **Request Builder**: Easy-to-use forms for building HTTP requests
+- **Response Viewer**: Pretty-printed JSON responses with syntax highlighting
+- **Header Management**: Custom headers and authentication support
+- **Real-time Testing**: Live API testing without external tools
+
+**Start the API Explorer:**
+```bash
+mobile-backend-cli explorer --port 3000 --open
+```
 
 ## 🛠 Comprehensive Features
 
@@ -132,6 +263,8 @@ docker-compose up -d
 - **Docker Support**: Complete containerization with Docker Compose
 - **Environment Management**: Multi-environment configuration
 - **API Documentation**: Auto-generated Swagger/OpenAPI docs
+- **CLI Tools**: Comprehensive command-line interface for development
+- **API Explorer**: Interactive web-based API testing interface
 - **Code Generation**: Automated code generation tools
 - **Testing Suite**: Unit, integration, and load testing
 - **CI/CD Ready**: GitHub Actions workflows included
@@ -151,6 +284,17 @@ docker-compose up -d
 ```
 mobile-backend/
 ├── backend/                    # Go backend application
+│   ├── cmd/                   # Command-line tools
+│   │   └── cli/              # Mobile Backend CLI
+│   │       ├── main.go       # CLI entry point
+│   │       ├── generate.go   # Code generation commands
+│   │       ├── api.go        # API testing commands
+│   │       ├── database.go   # Database management commands
+│   │       ├── deploy.go     # Deployment commands
+│   │       ├── test.go       # Testing commands
+│   │       ├── explorer.go   # Interactive API explorer
+│   │       ├── README.md     # CLI documentation
+│   │       └── install.sh    # Installation script
 │   ├── config/                # Configuration files
 │   │   ├── config.go         # Database and app configuration
 │   │   └── logging.go        # Logging configuration
@@ -218,7 +362,41 @@ mobile-backend/
 
 ## 🔧 Development Commands
 
-### Using Make (Recommended)
+### Using CLI Tools (Recommended)
+
+```bash
+# Code Generation
+mobile-backend-cli generate api User          # Generate complete API module
+mobile-backend-cli generate model Product     # Generate data model
+mobile-backend-cli generate controller Order  # Generate controller
+mobile-backend-cli generate service Payment   # Generate service
+
+# API Testing & Exploration
+mobile-backend-cli explorer --open            # Start interactive API explorer
+mobile-backend-cli api test GET /users        # Test API endpoint
+mobile-backend-cli api health                 # Check API health
+mobile-backend-cli api list                   # List all endpoints
+
+# Database Management
+mobile-backend-cli db migrate                 # Run migrations
+mobile-backend-cli db seed                    # Seed database
+mobile-backend-cli db backup                  # Create backup
+mobile-backend-cli db status                  # Check migration status
+
+# Testing
+mobile-backend-cli test unit                  # Run unit tests
+mobile-backend-cli test integration           # Run integration tests
+mobile-backend-cli test coverage              # Generate coverage report
+mobile-backend-cli test load --users 100      # Run load tests
+
+# Deployment
+mobile-backend-cli deploy --env staging       # Deploy to staging
+mobile-backend-cli deploy --env production    # Deploy to production
+mobile-backend-cli deploy status              # Check deployment status
+mobile-backend-cli deploy logs --follow       # View deployment logs
+```
+
+### Using Make (Alternative)
 
 ```bash
 # Development
@@ -743,6 +921,9 @@ If you encounter any issues or have questions:
 - [x] Comprehensive Monitoring
 - [x] API Documentation
 - [x] Docker & Kubernetes Support
+- [x] CLI Tools & API Explorer
+- [x] Code Generation & Scaffolding
+- [x] Interactive API Testing
 
 ### Planned Features 🚧
 - [ ] GraphQL API support

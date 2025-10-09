@@ -1,0 +1,272 @@
+// Common types and interfaces for Mobile Backend SDK
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaginationResponse {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface SearchParams extends PaginationParams {
+  search?: string;
+}
+
+export interface DateRange {
+  startDate: string;
+  endDate: string;
+}
+
+export interface FilterParams {
+  [key: string]: any;
+}
+
+export interface SortField {
+  field: string;
+  order: 'asc' | 'desc';
+}
+
+export interface ApiError {
+  message: string;
+  code: string;
+  details?: any;
+  timestamp: string;
+}
+
+export interface ValidationError {
+  field: string;
+  message: string;
+  code: string;
+}
+
+export interface ApiResponse<T = any> {
+  data: T;
+  message?: string;
+  success: boolean;
+  timestamp: string;
+  errors?: ValidationError[];
+}
+
+export interface WebSocketMessage {
+  type: string;
+  data: any;
+  timestamp: string;
+}
+
+export interface WebSocketEvent {
+  event: string;
+  data: any;
+  timestamp: string;
+}
+
+// User related types
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  avatar?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserProfile extends User {
+  preferences: UserPreferences;
+  subscription?: Subscription;
+  statistics: UserStatistics;
+}
+
+export interface UserPreferences {
+  theme: 'light' | 'dark';
+  language: string;
+  notifications: NotificationSettings;
+}
+
+export interface NotificationSettings {
+  email: boolean;
+  push: boolean;
+  sms: boolean;
+}
+
+export interface UserStatistics {
+  totalOrders: number;
+  totalSpent: number;
+  lastLogin: string;
+  accountAge: number;
+}
+
+// Product related types
+export interface Product {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  category: string;
+  images: string[];
+  isActive: boolean;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductCategory {
+  id: string;
+  name: string;
+  description?: string;
+  parentId?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+// Order related types
+export interface Order {
+  id: string;
+  userId: string;
+  items: OrderItem[];
+  total: number;
+  status: OrderStatus;
+  shippingAddress: Address;
+  billingAddress: Address;
+  paymentMethod: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+
+export interface Address {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
+// Payment related types
+export interface Payment {
+  id: string;
+  orderId: string;
+  amount: number;
+  currency: string;
+  status: PaymentStatus;
+  method: PaymentMethod;
+  transactionId?: string;
+  createdAt: string;
+}
+
+export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+export type PaymentMethod = 'card' | 'paypal' | 'stripe' | 'apple_pay' | 'google_pay';
+
+// Subscription related types
+export interface Subscription {
+  id: string;
+  userId: string;
+  planId: string;
+  status: SubscriptionStatus;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  createdAt: string;
+}
+
+export type SubscriptionStatus = 'active' | 'cancelled' | 'past_due' | 'unpaid';
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  interval: 'month' | 'year';
+  features: string[];
+  isActive: boolean;
+}
+
+// File upload types
+export interface FileUpload {
+  id: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  uploadedAt: string;
+}
+
+export interface UploadProgress {
+  loaded: number;
+  total: number;
+  percentage: number;
+}
+
+// Analytics types
+export interface AnalyticsEvent {
+  id: string;
+  userId?: string;
+  event: string;
+  properties: Record<string, any>;
+  timestamp: string;
+  platform: string;
+  version: string;
+}
+
+export interface AnalyticsMetrics {
+  totalUsers: number;
+  activeUsers: number;
+  totalRevenue: number;
+  conversionRate: number;
+  retentionRate: number;
+}
+
+// Webhook types
+export interface Webhook {
+  id: string;
+  url: string;
+  events: string[];
+  secret: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface WebhookEvent {
+  id: string;
+  webhookId: string;
+  event: string;
+  data: any;
+  status: 'pending' | 'sent' | 'failed';
+  attempts: number;
+  createdAt: string;
+}
+
+// Configuration types
+export interface SDKConfig {
+  apiKey?: string;
+  baseURL: string;
+  timeout?: number;
+  retries?: number;
+  debug?: boolean;
+}
+
+export interface ClientOptions {
+  timeout?: number;
+  retries?: number;
+  debug?: boolean;
+  interceptors?: {
+    request?: (config: any) => any;
+    response?: (response: any) => any;
+  };
+}

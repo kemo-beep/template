@@ -1,0 +1,250 @@
+# Mobile Backend CLI Configuration
+# Copy this file to .mobile-backend-cli.yaml and customize for your project
+
+# API Configuration
+base_url: "http://localhost:8080"
+api_key: "your-api-key-here"
+
+# Database Configuration
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "password"
+  name: "mobile_backend"
+  driver: "postgres"  # postgres, mysql, sqlite3
+
+# Deployment Configuration
+deployment:
+  environments:
+    development:
+      region: "us-east-1"
+      replicas: 1
+      image: "mobile-backend:dev"
+      resources:
+        cpu: "100m"
+        memory: "128Mi"
+      env_vars:
+        ENV: "development"
+        LOG_LEVEL: "debug"
+        DATABASE_URL: "postgres://user:pass@localhost:5432/mobile_backend_dev"
+        REDIS_URL: "redis://localhost:6379"
+        JWT_SECRET: "dev-secret-key"
+        API_RATE_LIMIT: "1000"
+        ENABLE_SWAGGER: "true"
+        ENABLE_METRICS: "true"
+    
+    staging:
+      region: "us-east-1"
+      replicas: 2
+      image: "mobile-backend:staging"
+      resources:
+        cpu: "500m"
+        memory: "512Mi"
+      env_vars:
+        ENV: "staging"
+        LOG_LEVEL: "info"
+        DATABASE_URL: "postgres://user:pass@staging-db:5432/mobile_backend_staging"
+        REDIS_URL: "redis://staging-redis:6379"
+        JWT_SECRET: "staging-secret-key"
+        API_RATE_LIMIT: "5000"
+        ENABLE_SWAGGER: "true"
+        ENABLE_METRICS: "true"
+    
+    production:
+      region: "us-west-2"
+      replicas: 3
+      image: "mobile-backend:latest"
+      resources:
+        cpu: "1000m"
+        memory: "1Gi"
+      env_vars:
+        ENV: "production"
+        LOG_LEVEL: "warn"
+        DATABASE_URL: "postgres://user:pass@prod-db:5432/mobile_backend_prod"
+        REDIS_URL: "redis://prod-redis:6379"
+        JWT_SECRET: "prod-secret-key"
+        API_RATE_LIMIT: "10000"
+        ENABLE_SWAGGER: "false"
+        ENABLE_METRICS: "true"
+
+# Testing Configuration
+testing:
+  timeout: "30s"
+  coverage_threshold: 80
+  load_test:
+    users: 100
+    duration: "60s"
+    ramp_up: "10s"
+  benchmark:
+    iterations: 1
+    duration: "0"  # 0 means run once
+  security:
+    enabled: true
+    fail_on_high: true
+  linting:
+    enabled: true
+    fail_on_warnings: false
+
+# API Explorer Configuration
+explorer:
+  port: 3000
+  host: "localhost"
+  theme: "light"  # light, dark
+  enable_cors: true
+  auto_open: false
+
+# Code Generation Configuration
+generation:
+  module_path: "github.com/your-org/your-project"
+  templates_dir: "templates"
+  output_dir: "."
+  overwrite: false
+  add_tests: true
+  add_docs: true
+  add_validation: true
+
+# Logging Configuration
+logging:
+  level: "info"  # debug, info, warn, error
+  format: "text"  # text, json
+  output: "stdout"  # stdout, stderr, file
+  file_path: "cli.log"
+  max_size: 100  # MB
+  max_backups: 3
+  max_age: 28  # days
+
+# Feature Flags
+features:
+  code_generation: true
+  api_testing: true
+  database_management: true
+  deployment: true
+  testing: true
+  monitoring: true
+  security_scanning: true
+  load_testing: true
+
+# Custom Commands
+custom_commands:
+  - name: "setup-dev"
+    description: "Set up development environment"
+    command: "make setup-dev"
+  - name: "run-tests"
+    description: "Run all tests with coverage"
+    command: "make test-coverage"
+  - name: "deploy-staging"
+    description: "Deploy to staging environment"
+    command: "make deploy-staging"
+
+# Webhook Configuration
+webhooks:
+  enabled: true
+  endpoints:
+    - name: "deployment-success"
+      url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+      events: ["deployment.success"]
+    - name: "test-failure"
+      url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+      events: ["test.failure"]
+
+# Notification Configuration
+notifications:
+  slack:
+    enabled: false
+    webhook_url: ""
+    channel: "#dev-alerts"
+  email:
+    enabled: false
+    smtp_host: "smtp.gmail.com"
+    smtp_port: 587
+    username: ""
+    password: ""
+    from: "noreply@yourcompany.com"
+    to: ["dev-team@yourcompany.com"]
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  metrics_endpoint: "/metrics"
+  health_endpoint: "/health"
+  prometheus:
+    enabled: true
+    port: 9090
+  grafana:
+    enabled: true
+    port: 3001
+    dashboard_url: "http://localhost:3001/d/mobile-backend"
+
+# Security Configuration
+security:
+  api_key_validation: true
+  rate_limiting: true
+  cors_enabled: true
+  allowed_origins: ["http://localhost:3000", "https://yourdomain.com"]
+  jwt_validation: true
+  ssl_required: false
+
+# Backup Configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30
+  storage:
+    type: "local"  # local, s3, gcs
+    path: "./backups"
+    s3_bucket: ""
+    s3_region: "us-east-1"
+
+# Cache Configuration
+cache:
+  enabled: true
+  type: "redis"  # redis, memory
+  redis_url: "redis://localhost:6379"
+  ttl: 3600  # seconds
+  max_size: 1000  # items
+
+# Rate Limiting Configuration
+rate_limiting:
+  enabled: true
+  requests_per_minute: 60
+  burst_size: 10
+  skip_successful: false
+  skip_failed: false
+
+# Documentation Configuration
+documentation:
+  enabled: true
+  swagger_ui: true
+  swagger_url: "/docs"
+  openapi_spec: "/swagger.json"
+  redoc: true
+  redoc_url: "/redoc"
+
+# Development Tools Configuration
+dev_tools:
+  hot_reload: true
+  debug_mode: false
+  profiling: false
+  tracing: false
+  metrics: true
+  logging: true
+
+# Integration Configuration
+integrations:
+  github:
+    enabled: false
+    token: ""
+    repository: ""
+  docker:
+    enabled: true
+    registry: "docker.io"
+    namespace: "your-org"
+  kubernetes:
+    enabled: false
+    context: ""
+    namespace: "default"
+  terraform:
+    enabled: false
+    state_file: "terraform.tfstate"
+    variables_file: "terraform.tfvars"

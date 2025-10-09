@@ -1,0 +1,82 @@
+// Mobile Backend SDK for TypeScript/JavaScript
+// Generated on {{.GeneratedAt}}
+
+export { MobileBackendClient, MobileBackendError } from './client';
+export type { 
+  MobileBackendConfig, 
+  ApiResponse, 
+  ApiError 
+} from './client';
+
+// Services
+export { AuthService } from './services/AuthService';
+export type { 
+  LoginRequest, 
+  RegisterRequest, 
+  AuthResponse, 
+  RefreshTokenRequest 
+} from './services/AuthService';
+
+export { UserService } from './services/UserService';
+export type { 
+  User, 
+  CreateUserRequest, 
+  UpdateUserRequest, 
+  UserListParams, 
+  UserListResponse 
+} from './services/UserService';
+
+export { ProductService } from './services/ProductService';
+export type { 
+  Product, 
+  CreateProductRequest, 
+  UpdateProductRequest, 
+  ProductListParams, 
+  ProductListResponse 
+} from './services/ProductService';
+
+export { OrderService } from './services/OrderService';
+export type { 
+  Order, 
+  OrderItem, 
+  Address, 
+  OrderStatus, 
+  CreateOrderRequest, 
+  UpdateOrderRequest, 
+  OrderListParams, 
+  OrderListResponse 
+} from './services/OrderService';
+
+// Common types
+export type {
+  PaginationParams,
+  PaginationResponse,
+  SearchParams,
+  DateRange,
+  FilterParams,
+  SortField,
+  ValidationError,
+  WebSocketMessage,
+  WebSocketEvent,
+  UserProfile,
+  UserPreferences,
+  NotificationSettings,
+  UserStatistics,
+  ProductCategory,
+  Payment,
+  PaymentStatus,
+  PaymentMethod,
+  Subscription,
+  SubscriptionStatus,
+  SubscriptionPlan,
+  FileUpload,
+  UploadProgress,
+  AnalyticsEvent,
+  AnalyticsMetrics,
+  Webhook,
+  WebhookEvent,
+  ClientOptions
+} from './types';
+
+// Default export
+export default MobileBackendClient;

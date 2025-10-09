@@ -1,0 +1,149 @@
+import { AxiosInstance } from 'axios';
+import { ApiResponse } from '../client';
+
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  avatar?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateUserRequest {
+  email: string;
+  name?: string;
+  password: string;
+}
+
+export interface UpdateUserRequest {
+  name?: string;
+  avatar?: string;
+  isActive?: boolean;
+}
+
+export interface UserListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface UserListResponse {
+  users: User[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export class UserService {
+  constructor(private axios: AxiosInstance) {}
+
+  /**
+   * Get all users with pagination and filtering
+   */
+  async list(params: UserListParams = {}): Promise<ApiResponse<UserListResponse>> {
+    const response = await this.axios.get<ApiResponse<UserListResponse>>('/api/v1/users', { params });
+    return response.data;
+  }
+
+  /**
+   * Get user by ID
+   */
+  async getById(id: string): Promise<ApiResponse<User>> {
+    const response = await this.axios.get<ApiResponse<User>>(`/api/v1/users/${id}`);
+    return response.data;
+  }
+
+  /**
+   * Create a new user
+   */
+  async create(data: CreateUserRequest): Promise<ApiResponse<User>> {
+    const response = await this.axios.post<ApiResponse<User>>('/api/v1/users', data);
+    return response.data;
+  }
+
+  /**
+   * Update user by ID
+   */
+  async update(id: string, data: UpdateUserRequest): Promise<ApiResponse<User>> {
+    const response = await this.axios.put<ApiResponse<User>>(`/api/v1/users/${id}`, data);
+    return response.data;
+  }
+
+  /**
+   * Delete user by ID
+   */
+  async delete(id: string): Promise<ApiResponse<void>> {
+    const response = await this.axios.delete<ApiResponse<void>>(`/api/v1/users/${id}`);
+    return response.data;
+  }
+
+  /**
+   * Search users
+   */
+  async search(query: string, params: Omit<UserListParams, 'search'> = {}): Promise<ApiResponse<UserListResponse>> {
+    return this.list({ ...params, search: query });
+  }
+
+  /**
+   * Get user statistics
+   */
+  async getStats(): Promise<ApiResponse<{
+    total: number;
+    active: number;
+    inactive: number;
+    newThisMonth: number;
+  }>> {
+    const response = await this.axios.get<ApiResponse<any>>('/api/v1/users/stats');
+    return response.data;
+  }
+
+  /**
+   * Upload user avatar
+   */
+  async uploadAvatar(id: string, file: File): Promise<ApiResponse<{ avatarUrl: string }>> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    const response = await this.axios.post<ApiResponse<{ avatarUrl: string }>>(
+      `/api/v1/users/${id}/avatar`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Delete user avatar
+   */
+  async deleteAvatar(id: string): Promise<ApiResponse<void>> {
+    const response = await this.axios.delete<ApiResponse<void>>(`/api/v1/users/${id}/avatar`);
+    return response.data;
+  }
+
+  /**
+   * Activate user
+   */
+  async activate(id: string): Promise<ApiResponse<User>> {
+    const response = await this.axios.post<ApiResponse<User>>(`/api/v1/users/${id}/activate`);
+    return response.data;
+  }
+
+  /**
+   * Deactivate user
+   */
+  async deactivate(id: string): Promise<ApiResponse<User>> {
+    const response = await this.axios.post<ApiResponse<User>>(`/api/v1/users/${id}/deactivate`);
+    return response.data;
+  }
+}
