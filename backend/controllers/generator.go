@@ -46,32 +46,32 @@ func NewGeneratorController(db *gorm.DB) *GeneratorController {
 func (gc *GeneratorController) GenerateFromSchema(c *gin.Context) {
 	var schema generators.SchemaModel
 	if err := c.ShouldBindJSON(&schema); err != nil {
-		utils.SendValidationErrorResponse(c, map[string]string{"schema": "Invalid schema format"})
+		utils.SendValidationErrorResponse(c, []utils.ValidationError{{Field: "schema", Message: "Invalid schema format"}})
 		return
 	}
 
 	// Generate model
 	if err := gc.sg.GenerateModelFromSchema(schema); err != nil {
-		utils.SendErrorResponse(c, "Failed to generate model", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to generate model", nil)
 		return
 	}
 
 	// Generate CRUD APIs
 	routes, err := gc.sg.GenerateCRUDAPIs(schema.Name, schema)
 	if err != nil {
-		utils.SendErrorResponse(c, "Failed to generate CRUD APIs", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to generate CRUD APIs", nil)
 		return
 	}
 
 	// Generate controller
 	if err := gc.sg.GenerateController(schema.Name, schema); err != nil {
-		utils.SendErrorResponse(c, "Failed to generate controller", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to generate controller", nil)
 		return
 	}
 
 	// Generate routes
 	if err := gc.sg.GenerateRoutes(schema.Name, routes); err != nil {
-		utils.SendErrorResponse(c, "Failed to generate routes", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to generate routes", nil)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (gc *GeneratorController) GenerateFromSchema(c *gin.Context) {
 
 	// Auto-register the generated routes
 	if err := gc.autoRegisterRoutes(c, schema.Name); err != nil {
-		utils.SendErrorResponse(c, "Failed to register routes", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to register routes", nil)
 		return
 	}
 
@@ -120,34 +120,34 @@ func (gc *GeneratorController) GenerateFromSchema(c *gin.Context) {
 func (gc *GeneratorController) GenerateFromJSONFile(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		utils.SendErrorResponse(c, "No file uploaded", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "No file uploaded", nil)
 		return
 	}
 	defer file.Close()
 
 	// Check file extension
 	if !strings.HasSuffix(strings.ToLower(header.Filename), ".json") {
-		utils.SendErrorResponse(c, "File must be a JSON file", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "File must be a JSON file", nil)
 		return
 	}
 
 	// Read file content
 	content, err := io.ReadAll(file)
 	if err != nil {
-		utils.SendErrorResponse(c, "Failed to read file", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to read file", nil)
 		return
 	}
 
 	// Parse JSON schema
 	var schema generators.SchemaModel
 	if err := json.Unmarshal(content, &schema); err != nil {
-		utils.SendErrorResponse(c, "Invalid JSON schema", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Invalid JSON schema", nil)
 		return
 	}
 
 	// Generate APIs
 	if err := gc.sg.GenerateFromJSON("temp_schema.json"); err != nil {
-		utils.SendErrorResponse(c, "Failed to generate APIs", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to generate APIs", nil)
 		return
 	}
 
@@ -175,28 +175,28 @@ func (gc *GeneratorController) GenerateFromJSONFile(c *gin.Context) {
 func (gc *GeneratorController) GenerateFromMigration(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		utils.SendErrorResponse(c, "No file uploaded", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "No file uploaded", nil)
 		return
 	}
 	defer file.Close()
 
 	// Check file extension
 	if !strings.HasSuffix(strings.ToLower(header.Filename), ".sql") {
-		utils.SendErrorResponse(c, "File must be a SQL file", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "File must be a SQL file", nil)
 		return
 	}
 
 	// Save uploaded file temporarily
 	tempFile := "temp_migration.sql"
 	if err := c.SaveUploadedFile(header, tempFile); err != nil {
-		utils.SendErrorResponse(c, "Failed to save file", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to save file", nil)
 		return
 	}
 	defer os.Remove(tempFile)
 
 	// Generate APIs from migration
 	if err := gc.mg.GenerateAPIsFromMigration(tempFile); err != nil {
-		utils.SendErrorResponse(c, "Failed to generate APIs from migration", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to generate APIs from migration", nil)
 		return
 	}
 
@@ -216,7 +216,7 @@ func (gc *GeneratorController) GenerateFromMigration(c *gin.Context) {
 // @Router /schema/generate-all [post]
 func (gc *GeneratorController) GenerateAllFromDatabase(c *gin.Context) {
 	if err := gc.mg.GenerateAPIsForAllTables(); err != nil {
-		utils.SendErrorResponse(c, "Failed to generate APIs for all tables", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to generate APIs for all tables", nil)
 		return
 	}
 
@@ -276,7 +276,7 @@ func (gc *GeneratorController) ListGeneratedModels(c *gin.Context) {
 func (gc *GeneratorController) CleanupModel(c *gin.Context) {
 	modelName := c.Param("model")
 	if modelName == "" {
-		utils.SendErrorResponse(c, "Model name is required", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Model name is required", nil)
 		return
 	}
 
@@ -380,7 +380,7 @@ func (gc *GeneratorController) GetSchemaTemplate(c *gin.Context) {
 func (gc *GeneratorController) ValidateSchema(c *gin.Context) {
 	var schema generators.SchemaModel
 	if err := c.ShouldBindJSON(&schema); err != nil {
-		utils.SendValidationErrorResponse(c, map[string]string{"schema": "Invalid schema format"})
+		utils.SendValidationErrorResponse(c, []utils.ValidationError{{Field: "schema", Message: "Invalid schema format"}})
 		return
 	}
 
@@ -417,7 +417,7 @@ func (gc *GeneratorController) ValidateSchema(c *gin.Context) {
 	}
 
 	if len(errors) > 0 {
-		utils.SendErrorResponse(c, "Schema validation failed", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Schema validation failed", nil)
 		return
 	}
 
@@ -438,7 +438,7 @@ func (gc *GeneratorController) ValidateSchema(c *gin.Context) {
 func (gc *GeneratorController) GetMigrationStatus(c *gin.Context) {
 	migrations, err := gc.mg.ListMigrations()
 	if err != nil {
-		utils.SendErrorResponse(c, "Failed to get migration status", http.StatusInternalServerError)
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to get migration status", nil)
 		return
 	}
 

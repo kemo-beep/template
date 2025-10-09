@@ -83,16 +83,27 @@ security-scan: ## Run security scan
 	cd backend && govulncheck ./...
 
 # Database
-db-migrate: ## Run database migrations
+db-migrate: ## Run database migrations (GORM AutoMigrate)
 	cd backend && go run scripts/migrate.go
+
+db-migrate-sql: ## Run SQL migrations (recommended for production)
+	cd backend && go run scripts/run_migrations.go
 
 db-seed: ## Seed database with test data
 	cd backend && go run scripts/seed.go
 
 db-reset: ## Reset database (drop, create, migrate, seed)
 	docker-compose exec db psql -U appuser -d appdb -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
-	$(MAKE) db-migrate
+	$(MAKE) db-migrate-sql
 	$(MAKE) db-seed
+
+db-status: ## Check migration status
+	@echo "Checking database migration status..."
+	@echo "SQL migrations available:"
+	@ls -la backend/migrations/*.sql 2>/dev/null || echo "No SQL migrations found"
+	@echo ""
+	@echo "To run SQL migrations: make db-migrate-sql"
+	@echo "To run GORM migrations: make db-migrate"
 
 # Build
 build: ## Build the application

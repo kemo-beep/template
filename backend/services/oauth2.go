@@ -92,13 +92,13 @@ func (o *OAuth2Service) ExchangeCodeForToken(provider OAuth2Provider, code strin
 	}
 
 	// Exchange code for access token
-	tokenReq := map[string]string{
-		"client_id":     config.ClientID,
-		"client_secret": config.ClientSecret,
-		"code":          code,
-		"redirect_uri":  config.RedirectURL,
-		"grant_type":    "authorization_code",
-	}
+	// tokenReq := map[string]string{
+	// 	"client_id":     config.ClientID,
+	// 	"client_secret": config.ClientSecret,
+	// 	"code":          code,
+	// 	"redirect_uri":  config.RedirectURL,
+	// 	"grant_type":    "authorization_code",
+	// }
 
 	// This is a simplified implementation
 	// In production, you'd use a proper OAuth2 library
@@ -177,7 +177,7 @@ func (o *OAuth2Service) CreateOrUpdateUser(ctx context.Context, oauthUser *OAuth
 			IsActive: true,
 		}
 		// Generate a random password for OAuth users
-		randomPassword := utils.GenerateRandomString(32)
+		randomPassword, _ := utils.GenerateRandomString(32)
 		if err := user.HashPassword(randomPassword); err != nil {
 			return nil, err
 		}

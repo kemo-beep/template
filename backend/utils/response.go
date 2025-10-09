@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -8,154 +10,206 @@ import (
 
 // SuccessResponse represents a successful API response
 type SuccessResponse struct {
-	Success bool        `json:"success"`
-	Message string      `json:"message,omitempty"`
-	Data    interface{} `json:"data,omitempty"`
+	Success   bool        `json:"success"`
+	Message   string      `json:"message"`
+	Data      interface{} `json:"data,omitempty"`
+	RequestID string      `json:"request_id,omitempty"`
+	TraceID   string      `json:"trace_id,omitempty"`
 }
 
-// ErrorResponse represents an error API response
+// ErrorResponse represents an error response
 type ErrorResponse struct {
-	Success bool   `json:"success"`
-	Error   string `json:"error"`
-	Code    int    `json:"code,omitempty"`
+	Success   bool      `json:"success"`
+	Error     *APIError `json:"error"`
+	RequestID string    `json:"request_id,omitempty"`
+	TraceID   string    `json:"trace_id,omitempty"`
 }
 
 // ValidationErrorResponse represents a validation error response
 type ValidationErrorResponse struct {
-	Success bool              `json:"success"`
-	Error   string            `json:"error"`
-	Details map[string]string `json:"details,omitempty"`
-}
-
-// UserResponse represents a user in API responses
-type UserResponse struct {
-	ID        uint   `json:"id"`
-	Email     string `json:"email"`
-	Name      string `json:"name"`
-	IsActive  bool   `json:"is_active"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
-}
-
-// LoginResponse represents a login response
-type LoginResponse struct {
-	User         UserResponse `json:"user"`
-	AccessToken  string       `json:"access_token"`
-	RefreshToken string       `json:"refresh_token"`
-	ExpiresIn    int64        `json:"expires_in"` // seconds
-}
-
-// RefreshTokenRequest represents a refresh token request
-type RefreshTokenRequest struct {
-	RefreshToken string `json:"refresh_token" binding:"required"`
-}
-
-// RefreshTokenResponse represents a refresh token response
-type RefreshTokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int64  `json:"expires_in"` // seconds
+	Success   bool              `json:"success"`
+	Error     *APIError         `json:"error"`
+	Details   []ValidationError `json:"details"`
+	RequestID string            `json:"request_id,omitempty"`
+	TraceID   string            `json:"trace_id,omitempty"`
 }
 
 // NewSuccessResponse creates a new success response
-func NewSuccessResponse(data interface{}, message ...string) SuccessResponse {
-	msg := ""
-	if len(message) > 0 {
-		msg = message[0]
-	}
+func NewSuccessResponse(data interface{}, message string) SuccessResponse {
 	return SuccessResponse{
 		Success: true,
-		Message: msg,
+		Message: message,
 		Data:    data,
 	}
 }
 
-// NewErrorResponse creates a new error response
-func NewErrorResponse(err string, code ...int) ErrorResponse {
-	c := 500
-	if len(code) > 0 {
-		c = code[0]
+// SendSuccessResponse sends a success response
+func SendSuccessResponse(c *gin.Context, data interface{}, message string) {
+	requestID := c.GetString("request_id")
+	traceID := c.GetString("trace_id")
+
+	response := SuccessResponse{
+		Success:   true,
+		Message:   message,
+		Data:      data,
+		RequestID: requestID,
+		TraceID:   traceID,
 	}
-	return ErrorResponse{
-		Success: false,
-		Error:   err,
-		Code:    c,
-	}
+
+	c.JSON(http.StatusOK, response)
 }
 
-// NewValidationErrorResponse creates a new validation error response
-func NewValidationErrorResponse(err string, details map[string]string) ValidationErrorResponse {
-	return ValidationErrorResponse{
-		Success: false,
-		Error:   err,
-		Details: details,
+// SendCreatedResponse sends a created response
+func SendCreatedResponse(c *gin.Context, data interface{}, message string) {
+	requestID := c.GetString("request_id")
+	traceID := c.GetString("trace_id")
+
+	response := SuccessResponse{
+		Success:   true,
+		Message:   message,
+		Data:      data,
+		RequestID: requestID,
+		TraceID:   traceID,
 	}
+
+	c.JSON(http.StatusCreated, response)
 }
 
-// FormatTime formats a time.Time to string
+// FormatTime formats time for API responses
 func FormatTime(t time.Time) string {
 	return t.Format(time.RFC3339)
 }
 
-// Response helper functions for Gin context
-func SendSuccessResponse(c *gin.Context, data interface{}, message ...string) {
-	msg := ""
-	if len(message) > 0 {
-		msg = message[0]
+// ParseInt parses string to int with default value
+func ParseInt(s string, defaultValue int) int {
+	if s == "" {
+		return defaultValue
 	}
-	c.JSON(200, NewSuccessResponse(data, msg))
+	if val, err := strconv.Atoi(s); err == nil {
+		return val
+	}
+	return defaultValue
 }
 
-func SendCreatedResponse(c *gin.Context, data interface{}, message ...string) {
-	msg := ""
-	if len(message) > 0 {
-		msg = message[0]
+// ParseBool parses string to bool with default value
+func ParseBool(s string, defaultValue bool) bool {
+	if s == "" {
+		return defaultValue
 	}
-	c.JSON(201, NewSuccessResponse(data, msg))
+	if val, err := strconv.ParseBool(s); err == nil {
+		return val
+	}
+	return defaultValue
 }
 
-func SendErrorResponse(c *gin.Context, err string, code ...int) {
-	statusCode := 500
-	if len(code) > 0 {
-		statusCode = code[0]
+// ParseFloat64 parses string to float64 with default value
+func ParseFloat64(s string, defaultValue float64) float64 {
+	if s == "" {
+		return defaultValue
 	}
-	c.JSON(statusCode, NewErrorResponse(err, statusCode))
+	if val, err := strconv.ParseFloat(s, 64); err == nil {
+		return val
+	}
+	return defaultValue
 }
 
-func SendValidationErrorResponse(c *gin.Context, details map[string]string) {
-	c.JSON(400, NewValidationErrorResponse("Validation failed", details))
+// GetPaginationFromQuery extracts pagination parameters from query
+func GetPaginationFromQuery(c *gin.Context) PaginationRequest {
+	page := ParseInt(c.DefaultQuery("page", "1"), 1)
+	limit := ParseInt(c.DefaultQuery("limit", "20"), 20)
+	sort := c.DefaultQuery("sort", "created_at")
+	order := c.DefaultQuery("order", "desc")
+	search := c.Query("search")
+
+	// Extract filters from query parameters
+	filters := make(map[string]interface{})
+	for key, values := range c.Request.URL.Query() {
+		if key != "page" && key != "limit" && key != "sort" && key != "order" && key != "search" {
+			if len(values) > 0 {
+				filters[key] = values[0]
+			}
+		}
+	}
+
+	return ParsePaginationRequest(page, limit, sort, order, search, filters)
 }
 
-func SendUnauthorizedResponse(c *gin.Context, message ...string) {
-	msg := "Unauthorized"
-	if len(message) > 0 {
-		msg = message[0]
+// SendErrorResponse sends an error response
+func SendErrorResponse(c *gin.Context, statusCode int, message string, details map[string]interface{}) {
+	requestID := c.GetString("request_id")
+	traceID := c.GetString("trace_id")
+
+	response := map[string]interface{}{
+		"success":    false,
+		"message":    message,
+		"request_id": requestID,
+		"trace_id":   traceID,
 	}
-	c.JSON(401, NewErrorResponse(msg, 401))
+
+	if details != nil {
+		response["details"] = details
+	}
+
+	c.JSON(statusCode, response)
 }
 
-func SendNotFoundResponse(c *gin.Context, message ...string) {
-	msg := "Not found"
-	if len(message) > 0 {
-		msg = message[0]
+// SendValidationErrorResponse sends a validation error response
+func SendValidationErrorResponse(c *gin.Context, errors []ValidationError) {
+	requestID := c.GetString("request_id")
+	traceID := c.GetString("trace_id")
+
+	response := map[string]interface{}{
+		"success":    false,
+		"message":    "Validation failed",
+		"errors":     errors,
+		"request_id": requestID,
+		"trace_id":   traceID,
 	}
-	c.JSON(404, NewErrorResponse(msg, 404))
+
+	c.JSON(http.StatusBadRequest, response)
 }
 
-func SendInternalServerErrorResponse(c *gin.Context, message ...string) {
-	msg := "Internal server error"
-	if len(message) > 0 {
-		msg = message[0]
+// SendUnauthorizedResponse sends an unauthorized response
+func SendUnauthorizedResponse(c *gin.Context, message string) {
+	requestID := c.GetString("request_id")
+	traceID := c.GetString("trace_id")
+
+	response := map[string]interface{}{
+		"success":    false,
+		"message":    message,
+		"request_id": requestID,
+		"trace_id":   traceID,
 	}
-	c.JSON(500, NewErrorResponse(msg, 500))
+
+	c.JSON(http.StatusUnauthorized, response)
 }
 
-// GenerateRandomString generates a random string of specified length
-func GenerateRandomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[time.Now().UnixNano()%int64(len(charset))]
+// SendNotFoundResponse sends a not found response
+func SendNotFoundResponse(c *gin.Context, message string) {
+	requestID := c.GetString("request_id")
+	traceID := c.GetString("trace_id")
+
+	response := map[string]interface{}{
+		"success":    false,
+		"message":    message,
+		"request_id": requestID,
+		"trace_id":   traceID,
 	}
-	return string(b)
+
+	c.JSON(http.StatusNotFound, response)
+}
+
+// SendInternalServerErrorResponse sends an internal server error response
+func SendInternalServerErrorResponse(c *gin.Context, message string) {
+	requestID := c.GetString("request_id")
+	traceID := c.GetString("trace_id")
+
+	response := map[string]interface{}{
+		"success":    false,
+		"message":    message,
+		"request_id": requestID,
+		"trace_id":   traceID,
+	}
+
+	c.JSON(http.StatusInternalServerError, response)
 }

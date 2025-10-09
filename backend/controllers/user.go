@@ -18,7 +18,6 @@ func NewUserController(authService *services.AuthService) *UserController {
 	return &UserController{authService: authService}
 }
 
-
 type UpdateUserRequest struct {
 	Name string `json:"name" binding:"omitempty,min=2"`
 }
@@ -41,8 +40,16 @@ func (uc *UserController) GetProfile(c *gin.Context) {
 		Email:     user.Email,
 		Name:      user.Name,
 		IsActive:  user.IsActive,
-		CreatedAt: utils.FormatTime(user.CreatedAt),
-		UpdatedAt: utils.FormatTime(user.UpdatedAt),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		// Add subscription status fields
+		SubscriptionStatus:   user.SubscriptionStatus,
+		IsPro:                user.IsPro,
+		SubscriptionEndsAt:   user.SubscriptionEndsAt,
+		TrialEndsAt:          user.TrialEndsAt,
+		StatusDisplay:        user.GetSubscriptionStatus(),
+		HasTrialAccess:       user.HasTrialAccess(),
+		IsSubscriptionActive: user.IsSubscriptionActive(),
 	}
 
 	utils.SendSuccessResponse(c, userResponse, "Profile retrieved successfully")
@@ -77,8 +84,8 @@ func (uc *UserController) UpdateProfile(c *gin.Context) {
 		Email:     user.Email,
 		Name:      user.Name,
 		IsActive:  user.IsActive,
-		CreatedAt: utils.FormatTime(user.CreatedAt),
-		UpdatedAt: utils.FormatTime(user.UpdatedAt),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 
 	utils.SendSuccessResponse(c, userResponse, "Profile updated successfully")
@@ -103,7 +110,7 @@ func (uc *UserController) GetUserByID(c *gin.Context) {
 	userIDStr := c.Param("id")
 	userID, err := strconv.ParseUint(userIDStr, 10, 32)
 	if err != nil {
-		utils.SendErrorResponse(c, "Invalid user ID", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Invalid user ID", nil)
 		return
 	}
 
@@ -118,8 +125,8 @@ func (uc *UserController) GetUserByID(c *gin.Context) {
 		Email:     user.Email,
 		Name:      user.Name,
 		IsActive:  user.IsActive,
-		CreatedAt: utils.FormatTime(user.CreatedAt),
-		UpdatedAt: utils.FormatTime(user.UpdatedAt),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 
 	utils.SendSuccessResponse(c, userResponse, "User retrieved successfully")

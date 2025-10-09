@@ -45,14 +45,14 @@ type UploadResponse struct {
 func (uc *UploadController) UploadFile(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		utils.SendErrorResponse(c, "No file uploaded", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "No file uploaded", nil)
 		return
 	}
 	defer file.Close()
 
 	// Validate file type
 	if !uc.isValidFileType(header) {
-		utils.SendErrorResponse(c, "Invalid file type", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Invalid file type", nil)
 		return
 	}
 
@@ -86,13 +86,13 @@ func (uc *UploadController) UploadFile(c *gin.Context) {
 func (uc *UploadController) UploadMultipleFiles(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
-		utils.SendErrorResponse(c, "Failed to parse multipart form", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Failed to parse multipart form", nil)
 		return
 	}
 
 	files := form.File["files"]
 	if len(files) == 0 {
-		utils.SendErrorResponse(c, "No files uploaded", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "No files uploaded", nil)
 		return
 	}
 

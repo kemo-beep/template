@@ -55,7 +55,7 @@ func (ac *AuthController) Register(c *gin.Context) {
 	user, err := ac.authService.RegisterUser(req.Email, req.Password, req.Name)
 	if err != nil {
 		if strings.Contains(err.Error(), "already exists") {
-			utils.SendErrorResponse(c, "User already exists", http.StatusConflict)
+			utils.SendErrorResponse(c, http.StatusConflict, "User already exists", nil)
 		} else {
 			utils.SendInternalServerErrorResponse(c, "Failed to create user")
 		}
@@ -67,8 +67,8 @@ func (ac *AuthController) Register(c *gin.Context) {
 		Email:     user.Email,
 		Name:      user.Name,
 		IsActive:  user.IsActive,
-		CreatedAt: utils.FormatTime(user.CreatedAt),
-		UpdatedAt: utils.FormatTime(user.UpdatedAt),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 
 	utils.SendCreatedResponse(c, userResponse, "User created successfully")
@@ -93,7 +93,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	user, token, err := ac.authService.LoginUser(req.Email, req.Password)
+	user, _, err := ac.authService.LoginUser(req.Email, req.Password)
 	if err != nil {
 		utils.SendUnauthorizedResponse(c, "Invalid credentials")
 		return
@@ -111,8 +111,8 @@ func (ac *AuthController) Login(c *gin.Context) {
 		Email:     user.Email,
 		Name:      user.Name,
 		IsActive:  user.IsActive,
-		CreatedAt: utils.FormatTime(user.CreatedAt),
-		UpdatedAt: utils.FormatTime(user.UpdatedAt),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 
 	loginResponse := utils.LoginResponse{
@@ -194,9 +194,12 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 	utils.SendSuccessResponse(c, refreshResponse, "Tokens refreshed successfully")
 }
 
-func parseValidationErrors(err error) map[string]string {
-	errors := make(map[string]string)
+func parseValidationErrors(err error) []utils.ValidationError {
 	// This is a simplified version - in a real app, you'd parse the validation errors properly
-	errors["general"] = err.Error()
-	return errors
+	return []utils.ValidationError{
+		{
+			Field:   "general",
+			Message: err.Error(),
+		},
+	}
 }

@@ -26,6 +26,7 @@ import (
 	"mobile-backend/models"
 	"mobile-backend/routes"
 	"mobile-backend/services"
+	"mobile-backend/utils"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -46,7 +47,17 @@ func main() {
 	}
 
 	// Run database migrations
-	if err := config.GetDB().AutoMigrate(&models.User{}, &models.Session{}); err != nil {
+	if err := config.GetDB().AutoMigrate(
+		&models.User{},
+		&models.Session{},
+		&models.Product{},
+		&models.Plan{},
+		&models.Subscription{},
+		&models.Payment{},
+		&models.PaymentMethod{},
+		&models.WebhookEvent{},
+		&models.GeminiConversation{},
+	); err != nil {
 		logger.Fatal("Failed to run database migrations", zap.Error(err))
 	}
 	logger.Info("Database migrations completed successfully")
@@ -67,8 +78,51 @@ func main() {
 
 	// Initialize services
 	cacheService := services.NewCacheService(redisClient)
+	cacheMetricsService := services.NewCacheMetricsService(redisClient)
 	authService := services.NewAuthService(config.GetDB(), cacheService)
 	oauth2Service := services.NewOAuth2Service(config.GetDB(), redisClient)
+
+	// Initialize subscription status service
+	subscriptionStatusService := services.NewSubscriptionStatusService(config.GetDB(), logger.Logger)
+
+	// Initialize WebSocket services first
+	websocketHub := services.NewHub(logger.Logger)
+	websocketService := services.NewWebSocketService(websocketHub, config.GetDB(), redisClient, cacheService, logger.Logger)
+
+	// Initialize payment services with WebSocket integration and subscription status service
+	stripeService := services.NewStripeService(config.GetDB(), cacheService, websocketService, subscriptionStatusService)
+	polarService := services.NewPolarService(config.GetDB(), cacheService, subscriptionStatusService)
+
+	// Initialize job queue and background processing services
+	jobQueueService := services.NewJobQueueService(os.Getenv("REDIS_URL"), config.GetDB(), logger.Logger)
+	cronScheduler := services.NewCronScheduler(jobQueueService, config.GetDB(), logger.Logger)
+	workerManager := services.NewWorkerManager(jobQueueService, cronScheduler, config.GetDB(), logger.Logger)
+	jobQueueMetrics := services.NewJobQueueMetrics(os.Getenv("REDIS_URL"), logger.Logger)
+
+	// Initialize Gemini AI service
+	geminiService, err := services.NewGeminiService(config.GetDB(), cacheService, logger.Logger)
+	if err != nil {
+		logger.Fatal("Failed to initialize Gemini service", zap.Error(err))
+	}
+
+	// Start WebSocket hub in a goroutine
+	go websocketHub.Run()
+
+	// Start background workers and scheduler
+	go func() {
+		if err := workerManager.Start(); err != nil {
+			logger.Fatal("Failed to start worker manager", zap.Error(err))
+		}
+	}()
+
+	// Start job queue metrics collection
+	jobQueueMetrics.Start()
+
+	// Start subscription expiry checker
+	go subscriptionStatusService.StartSubscriptionExpiryChecker(ctx)
+
+	// Initialize product sync service
+	productSyncService := services.NewProductSyncService(config.GetDB())
 
 	// Initialize controllers
 	healthController := controllers.NewHealthController(config.GetDB())
@@ -77,6 +131,14 @@ func main() {
 	uploadController := controllers.NewUploadController("./uploads")
 	generatorController := controllers.NewGeneratorController(config.GetDB())
 	oauth2Controller := controllers.NewOAuth2Controller(oauth2Service, authService)
+	cacheController := controllers.NewCacheController(cacheService, cacheMetricsService)
+	paymentController := controllers.NewPaymentController(stripeService, polarService, config.GetDB())
+	websocketController := controllers.NewWebSocketController(websocketService, websocketHub, logger.Logger)
+	jobQueueController := controllers.NewJobQueueController(jobQueueService, workerManager, logger.Logger)
+	jobQueueMetricsController := controllers.NewJobQueueMetricsController(jobQueueMetrics, logger.Logger)
+	productWebhookController := controllers.NewProductWebhookController(stripeService, polarService, productSyncService)
+	geminiController := controllers.NewGeminiController(geminiService, logger.Logger)
+	// Subscription management controller is initialized in routes
 
 	// Setup Gin router
 	if os.Getenv("GIN_MODE") == "release" {
@@ -85,15 +147,32 @@ func main() {
 
 	r := gin.New()
 
+	// Initialize rate limiter with different strategies
+	rateLimiter := middleware.NewRateLimiter(redisClient)
+
+	// Initialize subscription middleware
+	subscriptionMiddleware := middleware.NewSubscriptionMiddleware(config.GetDB(), logger.Logger)
+
 	// Global middleware
 	r.Use(gin.Recovery())
 	r.Use(middleware.LoggerMiddleware(logger))
 	r.Use(middleware.CORS())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	r.Use(middleware.PrometheusMiddleware())
+	r.Use(utils.ErrorHandler()) // Add error handler
+
+	// Apply rate limiting to specific route groups
+	authGroup := r.Group("/api/v1/auth")
+	authGroup.Use(rateLimiter.AuthRateLimit())
+
+	apiGroup := r.Group("/api/v1")
+	apiGroup.Use(rateLimiter.APIRateLimit())
 
 	// Setup routes
-	routes.SetupRoutes(r, healthController, authController, userController, uploadController, generatorController, oauth2Controller)
+	routes.SetupRoutes(r, healthController, authController, userController, uploadController, generatorController, oauth2Controller, cacheController, paymentController, websocketController)
+
+	// Setup WebSocket routes with logger
+	routes.SetupWebSocketRoutes(r, websocketController, logger.Logger)
 
 	// Setup generator routes
 	routes.SetupGeneratorRoutes(r, generatorController)
@@ -101,6 +180,30 @@ func main() {
 	// Setup generated API routes
 	productController := controllers.NewProductController(config.GetDB())
 	routes.SetupProductRoutes(r, productController)
+
+	// Setup example routes (demonstrates all features)
+	exampleController := controllers.NewExampleController()
+	routes.SetupExampleRoutes(r, exampleController)
+
+	// Setup job queue routes
+	routes.SetupJobQueueRoutes(r, jobQueueController, jobQueueMetricsController)
+
+	// Setup subscription management routes
+	routes.SetupSubscriptionManagementRoutes(
+		apiGroup,
+		config.GetDB(),
+		subscriptionStatusService,
+		stripeService,
+		polarService,
+		subscriptionMiddleware,
+		logger.Logger,
+	)
+
+	// Setup product webhook routes
+	routes.SetupProductWebhookRoutes(apiGroup, productWebhookController)
+
+	// Setup Gemini AI routes with rate limiting
+	routes.SetupGeminiRoutesWithRateLimit(r, geminiController, rateLimiter, logger.Logger)
 
 	// Regenerate Swagger documentation on startup
 	logger.Info("Regenerating Swagger documentation...")
@@ -142,6 +245,10 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	logger.Info("Shutting down server...")
+
+	// Stop background workers and scheduler
+	logger.Info("Stopping background workers...")
+	workerManager.Stop()
 
 	// Give outstanding requests 30 seconds to complete
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

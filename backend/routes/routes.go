@@ -11,7 +11,8 @@ import (
 func SetupRoutes(r *gin.Engine, healthController *controllers.HealthController,
 	authController *controllers.AuthController, userController *controllers.UserController,
 	uploadController *controllers.UploadController, generatorController *controllers.GeneratorController,
-	oauth2Controller *controllers.OAuth2Controller) {
+	oauth2Controller *controllers.OAuth2Controller, cacheController *controllers.CacheController,
+	paymentController *controllers.PaymentController, websocketController *controllers.WebSocketController) {
 
 	// Health check routes
 	r.GET("/health", healthController.HealthCheck)
@@ -21,8 +22,9 @@ func SetupRoutes(r *gin.Engine, healthController *controllers.HealthController,
 	// API v1 routes
 	api := r.Group("/api/v1")
 	{
-		// Public routes
+		// Public routes with rate limiting
 		auth := api.Group("/auth")
+		// Note: Rate limiting will be applied in main.go
 		{
 			auth.POST("/register", authController.Register)
 			auth.POST("/login", authController.Login)
@@ -55,7 +57,25 @@ func SetupRoutes(r *gin.Engine, healthController *controllers.HealthController,
 			protected.POST("/upload/multiple", uploadController.UploadMultipleFiles)
 			protected.GET("/uploads/:filename", uploadController.GetFile)
 			protected.DELETE("/uploads/:filename", uploadController.DeleteFile)
+
+			// Cache management routes
+			cache := protected.Group("/cache")
+			{
+				cache.GET("/stats", cacheController.GetCacheStats)
+				cache.GET("/metrics", cacheController.GetCacheMetrics)
+				cache.GET("/health", cacheController.GetCacheHealth)
+				cache.GET("/recommendations", cacheController.GetCacheRecommendations)
+				cache.POST("/metrics/reset", cacheController.ResetCacheMetrics)
+				cache.GET("/key", cacheController.GetCacheKey)
+				cache.POST("/key", cacheController.SetCacheKey)
+				cache.POST("/invalidate", cacheController.InvalidateCache)
+				cache.POST("/warm", cacheController.WarmCache)
+				cache.POST("/clear", cacheController.ClearCache)
+			}
 		}
+
+		// Payment routes (separate group for better organization)
+		SetupPaymentRoutes(api, paymentController)
 	}
 
 	// Serve uploaded files

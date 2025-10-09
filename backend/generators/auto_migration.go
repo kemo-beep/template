@@ -158,7 +158,7 @@ COMMENT ON COLUMN %s.description IS 'Description of the %s';
 COMMENT ON COLUMN %s.is_active IS 'Whether the %s is active';
 `,
 		tableName, time.Now().Format("2006-01-02 15:04:05"),
-		tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName)
+		tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName)
 }
 
 // generateDropTableTemplate generates a DROP TABLE template

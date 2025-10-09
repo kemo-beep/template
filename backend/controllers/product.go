@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"net/http"
-	"strconv"
 	"mobile-backend/models"
 	"mobile-backend/utils"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -29,12 +30,12 @@ func NewProductController(db *gorm.DB) *ProductController {
 // @Router /product [get]
 func (c *ProductController) GetProductList(ctx *gin.Context) {
 	var products []models.Product
-	
+
 	if err := c.db.Find(&products).Error; err != nil {
-		utils.SendErrorResponse(ctx, "Failed to fetch products", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch products", nil)
 		return
 	}
-	
+
 	utils.SendSuccessResponse(ctx, products, "Products retrieved successfully")
 }
 
@@ -53,20 +54,20 @@ func (c *ProductController) GetProductList(ctx *gin.Context) {
 func (c *ProductController) GetProduct(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.SendErrorResponse(ctx, "Invalid ID", http.StatusBadRequest)
+		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid ID", nil)
 		return
 	}
-	
+
 	var product models.Product
 	if err := c.db.First(&product, uint(id)).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			utils.SendNotFoundResponse(ctx, "Product not found")
 			return
 		}
-		utils.SendErrorResponse(ctx, "Failed to fetch product", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch product", nil)
 		return
 	}
-	
+
 	utils.SendSuccessResponse(ctx, product, "Product retrieved successfully")
 }
 
@@ -84,17 +85,17 @@ func (c *ProductController) GetProduct(ctx *gin.Context) {
 // @Router /product [post]
 func (c *ProductController) CreateProduct(ctx *gin.Context) {
 	var product models.Product
-	
+
 	if err := ctx.ShouldBindJSON(&product); err != nil {
-		utils.SendValidationErrorResponse(ctx, map[string]string{"input": "Invalid input"})
+		utils.SendValidationErrorResponse(ctx, []utils.ValidationError{{Field: "input", Message: "Invalid input"}})
 		return
 	}
-	
+
 	if err := c.db.Create(&product).Error; err != nil {
-		utils.SendErrorResponse(ctx, "Failed to create product", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to create product", nil)
 		return
 	}
-	
+
 	utils.SendCreatedResponse(ctx, product, "Product created successfully")
 }
 
@@ -115,30 +116,30 @@ func (c *ProductController) CreateProduct(ctx *gin.Context) {
 func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.SendErrorResponse(ctx, "Invalid ID", http.StatusBadRequest)
+		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid ID", nil)
 		return
 	}
-	
+
 	var product models.Product
 	if err := c.db.First(&product, uint(id)).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			utils.SendNotFoundResponse(ctx, "Product not found")
 			return
 		}
-		utils.SendErrorResponse(ctx, "Failed to fetch product", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch product", nil)
 		return
 	}
-	
+
 	if err := ctx.ShouldBindJSON(&product); err != nil {
-		utils.SendValidationErrorResponse(ctx, map[string]string{"input": "Invalid input"})
+		utils.SendValidationErrorResponse(ctx, []utils.ValidationError{{Field: "input", Message: "Invalid input"}})
 		return
 	}
-	
+
 	if err := c.db.Save(&product).Error; err != nil {
-		utils.SendErrorResponse(ctx, "Failed to update product", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to update product", nil)
 		return
 	}
-	
+
 	utils.SendSuccessResponse(ctx, product, "Product updated successfully")
 }
 
@@ -152,14 +153,14 @@ func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 func (c *ProductController) DeleteProduct(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.SendErrorResponse(ctx, "Invalid ID", http.StatusBadRequest)
+		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid ID", nil)
 		return
 	}
-	
+
 	if err := c.db.Delete(&models.Product{}, uint(id)).Error; err != nil {
-		utils.SendErrorResponse(ctx, "Failed to delete product", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete product", nil)
 		return
 	}
-	
+
 	utils.SendSuccessResponse(ctx, nil, "Product deleted successfully")
 }

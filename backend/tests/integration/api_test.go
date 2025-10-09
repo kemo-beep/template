@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func setupTestApp() *gin.Engine {
@@ -35,20 +36,36 @@ func setupTestApp() *gin.Engine {
 
 	// Initialize services
 	cacheService := services.NewCacheService(redisClient)
+	cacheMetricsService := services.NewCacheMetricsService(redisClient)
 	authService := services.NewAuthService(config.GetDB(), cacheService)
+	oauth2Service := services.NewOAuth2Service(config.GetDB(), redisClient)
+
+	// Initialize subscription status service
+	subscriptionStatusService := services.NewSubscriptionStatusService(config.GetDB(), zap.NewNop())
+
+	// Initialize WebSocket services
+	websocketHub := services.NewHub(zap.NewNop())
+	websocketService := services.NewWebSocketService(websocketHub, config.GetDB(), redisClient, cacheService, zap.NewNop())
+	stripeService := services.NewStripeService(config.GetDB(), cacheService, websocketService, subscriptionStatusService)
+	polarService := services.NewPolarService(config.GetDB(), cacheService, subscriptionStatusService)
 
 	// Initialize controllers
 	healthController := controllers.NewHealthController(config.GetDB())
 	authController := controllers.NewAuthController(authService)
 	userController := controllers.NewUserController(authService)
 	uploadController := controllers.NewUploadController("./test-uploads")
+	generatorController := controllers.NewGeneratorController(config.GetDB())
+	oauth2Controller := controllers.NewOAuth2Controller(oauth2Service, authService)
+	cacheController := controllers.NewCacheController(cacheService, cacheMetricsService)
+	paymentController := controllers.NewPaymentController(stripeService, polarService, config.GetDB())
+	websocketController := controllers.NewWebSocketController(websocketService, websocketHub, zap.NewNop())
 
 	// Setup Gin router
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 
 	// Setup routes
-	routes.SetupRoutes(r, healthController, authController, userController, uploadController)
+	routes.SetupRoutes(r, healthController, authController, userController, uploadController, generatorController, oauth2Controller, cacheController, paymentController, websocketController)
 
 	return r
 }

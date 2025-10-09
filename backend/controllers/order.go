@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"net/http"
-	"strconv"
 	"mobile-backend/models"
 	"mobile-backend/utils"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -29,12 +30,12 @@ func NewOrderController(db *gorm.DB) *OrderController {
 // @Router /order [get]
 func (c *OrderController) GetOrderList(ctx *gin.Context) {
 	var orders []models.Order
-	
+
 	if err := c.db.Find(&orders).Error; err != nil {
-		utils.SendErrorResponse(ctx, "Failed to fetch orders", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch orders", nil)
 		return
 	}
-	
+
 	utils.SendSuccessResponse(ctx, orders, "Orders retrieved successfully")
 }
 
@@ -53,20 +54,20 @@ func (c *OrderController) GetOrderList(ctx *gin.Context) {
 func (c *OrderController) GetOrder(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.SendErrorResponse(ctx, "Invalid ID", http.StatusBadRequest)
+		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid ID", nil)
 		return
 	}
-	
+
 	var order models.Order
 	if err := c.db.First(&order, uint(id)).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			utils.SendNotFoundResponse(ctx, "Order not found")
 			return
 		}
-		utils.SendErrorResponse(ctx, "Failed to fetch order", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch order", nil)
 		return
 	}
-	
+
 	utils.SendSuccessResponse(ctx, order, "Order retrieved successfully")
 }
 
@@ -84,17 +85,17 @@ func (c *OrderController) GetOrder(ctx *gin.Context) {
 // @Router /order [post]
 func (c *OrderController) CreateOrder(ctx *gin.Context) {
 	var order models.Order
-	
+
 	if err := ctx.ShouldBindJSON(&order); err != nil {
-		utils.SendValidationErrorResponse(ctx, map[string]string{"input": "Invalid input"})
+		utils.SendValidationErrorResponse(ctx, []utils.ValidationError{{Field: "input", Message: "Invalid input"}})
 		return
 	}
-	
+
 	if err := c.db.Create(&order).Error; err != nil {
-		utils.SendErrorResponse(ctx, "Failed to create order", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to create order", nil)
 		return
 	}
-	
+
 	utils.SendCreatedResponse(ctx, order, "Order created successfully")
 }
 
@@ -115,30 +116,30 @@ func (c *OrderController) CreateOrder(ctx *gin.Context) {
 func (c *OrderController) UpdateOrder(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.SendErrorResponse(ctx, "Invalid ID", http.StatusBadRequest)
+		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid ID", nil)
 		return
 	}
-	
+
 	var order models.Order
 	if err := c.db.First(&order, uint(id)).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			utils.SendNotFoundResponse(ctx, "Order not found")
 			return
 		}
-		utils.SendErrorResponse(ctx, "Failed to fetch order", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to fetch order", nil)
 		return
 	}
-	
+
 	if err := ctx.ShouldBindJSON(&order); err != nil {
-		utils.SendValidationErrorResponse(ctx, map[string]string{"input": "Invalid input"})
+		utils.SendValidationErrorResponse(ctx, []utils.ValidationError{{Field: "input", Message: "Invalid input"}})
 		return
 	}
-	
+
 	if err := c.db.Save(&order).Error; err != nil {
-		utils.SendErrorResponse(ctx, "Failed to update order", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to update order", nil)
 		return
 	}
-	
+
 	utils.SendSuccessResponse(ctx, order, "Order updated successfully")
 }
 
@@ -152,14 +153,14 @@ func (c *OrderController) UpdateOrder(ctx *gin.Context) {
 func (c *OrderController) DeleteOrder(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		utils.SendErrorResponse(ctx, "Invalid ID", http.StatusBadRequest)
+		utils.SendErrorResponse(ctx, http.StatusBadRequest, "Invalid ID", nil)
 		return
 	}
-	
+
 	if err := c.db.Delete(&models.Order{}, uint(id)).Error; err != nil {
-		utils.SendErrorResponse(ctx, "Failed to delete order", http.StatusInternalServerError)
+		utils.SendErrorResponse(ctx, http.StatusInternalServerError, "Failed to delete order", nil)
 		return
 	}
-	
+
 	utils.SendSuccessResponse(ctx, nil, "Order deleted successfully")
 }

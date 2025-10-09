@@ -38,7 +38,7 @@ func (oc *OAuth2Controller) OAuth2Login(c *gin.Context) {
 
 	// Validate provider
 	if provider != services.GoogleProvider && provider != services.GitHubProvider {
-		utils.SendErrorResponse(c, "Unsupported OAuth2 provider", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Unsupported OAuth2 provider", nil)
 		return
 	}
 
@@ -82,14 +82,14 @@ func (oc *OAuth2Controller) OAuth2Callback(c *gin.Context) {
 	state := c.Query("state")
 
 	if code == "" || state == "" {
-		utils.SendErrorResponse(c, "Missing code or state parameter", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Missing code or state parameter", nil)
 		return
 	}
 
 	// Validate state
 	provider, err := oc.oauth2Service.ValidateOAuthState(c.Request.Context(), state)
 	if err != nil {
-		utils.SendErrorResponse(c, "Invalid or expired state", http.StatusBadRequest)
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Invalid or expired state", nil)
 		return
 	}
 
@@ -126,8 +126,8 @@ func (oc *OAuth2Controller) OAuth2Callback(c *gin.Context) {
 		Email:     user.Email,
 		Name:      user.Name,
 		IsActive:  user.IsActive,
-		CreatedAt: utils.FormatTime(user.CreatedAt),
-		UpdatedAt: utils.FormatTime(user.UpdatedAt),
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 
 	loginResponse := utils.LoginResponse{

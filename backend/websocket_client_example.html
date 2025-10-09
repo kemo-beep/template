@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Client Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: white;
+            border-left: 4px solid #007bff;
+        }
+
+        .notification {
+            border-left-color: #28a745;
+        }
+
+        .payment {
+            border-left-color: #ffc107;
+        }
+
+        .system {
+            border-left-color: #dc3545;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-group {
+            margin: 10px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>WebSocket Client Example</h1>
+
+    <div class="container">
+        <h2>Connection</h2>
+        <div id="status" class="status disconnected">Disconnected</div>
+        <div>
+            <input type="text" id="token" placeholder="JWT Token" value="your_jwt_token_here">
+            <button id="connectBtn" onclick="connect()">Connect</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Messages</h2>
+        <div id="messages" class="messages"></div>
+        <button onclick="clearMessages()">Clear Messages</button>
+    </div>
+
+    <div class="container">
+        <h2>Send Test Messages</h2>
+
+        <div class="form-group">
+            <label>Join Room:</label>
+            <input type="text" id="roomName" placeholder="Room name" value="test-room">
+            <button onclick="joinRoom()">Join Room</button>
+            <button onclick="leaveRoom()">Leave Room</button>
+        </div>
+
+        <div class="form-group">
+            <label>Send Typing Indicator:</label>
+            <button onclick="sendTyping(true)">Start Typing</button>
+            <button onclick="sendTyping(false)">Stop Typing</button>
+        </div>
+
+        <div class="form-group">
+            <label>Send Presence Update:</label>
+            <select id="presenceStatus">
+                <option value="online">Online</option>
+                <option value="away">Away</option>
+                <option value="busy">Busy</option>
+                <option value="offline">Offline</option>
+            </select>
+            <button onclick="sendPresence()">Update Presence</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Test Notifications (via REST API)</h2>
+        <p>Use these to test sending notifications to connected WebSocket clients:</p>
+
+        <div class="form-group">
+            <label>Target User ID:</label>
+            <input type="number" id="targetUserId" placeholder="User ID" value="1">
+        </div>
+
+        <div class="form-group">
+            <label>Notification Type:</label>
+            <input type="text" id="notificationType" placeholder="Type" value="test">
+        </div>
+
+        <div class="form-group">
+            <label>Title:</label>
+            <input type="text" id="notificationTitle" placeholder="Title" value="Test Notification">
+        </div>
+
+        <div class="form-group">
+            <label>Message:</label>
+            <textarea id="notificationMessage" placeholder="Message">This is a test notification!</textarea>
+        </div>
+
+        <button onclick="sendNotification()">Send Notification</button>
+        <button onclick="sendSystemNotification()">Send System Notification</button>
+    </div>
+
+    <script>
+        let ws = null;
+        let isConnected = false;
+
+        function connect() {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                alert('Please enter a JWT token');
+                return;
+            }
+
+            // WebSocket connection with authentication
+            ws = new WebSocket(`ws://localhost:8081/ws/connect?token=${token}`);
+
+            ws.onopen = function (event) {
+                isConnected = true;
+                updateStatus('Connected', 'connected');
+                addMessage('System', 'Connected to WebSocket server', 'system');
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('disconnectBtn').disabled = false;
+            };
+
+            ws.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+                addMessage(data.type, JSON.stringify(data, null, 2), data.type);
+            };
+
+            ws.onclose = function (event) {
+                isConnected = false;
+                updateStatus('Disconnected', 'disconnected');
+                addMessage('System', 'Disconnected from WebSocket server', 'system');
+                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('disconnectBtn').disabled = true;
+            };
+
+            ws.onerror = function (error) {
+                console.error('WebSocket error:', error);
+                addMessage('Error', 'WebSocket error occurred', 'system');
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function updateStatus(text, className) {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            status.className = `status ${className}`;
+        }
+
+        function addMessage(type, content, messageClass) {
+            const messages = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${messageClass}`;
+            messageDiv.innerHTML = `<strong>${type}:</strong><br><pre>${content}</pre>`;
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        function joinRoom() {
+            if (!isConnected) {
+                alert('Please connect first');
+                return;
+            }
+            const roomName = document.getElementById('roomName').value;
+            ws.send(JSON.stringify({
+                type: 'join_room',
+                data: { room: roomName }
+            }));
+        }
+
+        function leaveRoom() {
+            if (!isConnected) {
+                alert('Please connect first');
+                return;
+            }
+            const roomName = document.getElementById('roomName').value;
+            ws.send(JSON.stringify({
+                type: 'leave_room',
+                data: { room: roomName }
+            }));
+        }
+
+        function sendTyping(isTyping) {
+            if (!isConnected) {
+                alert('Please connect first');
+                return;
+            }
+            const roomName = document.getElementById('roomName').value;
+            ws.send(JSON.stringify({
+                type: 'typing_indicator',
+                data: {
+                    room: roomName,
+                    is_typing: isTyping
+                }
+            }));
+        }
+
+        function sendPresence() {
+            if (!isConnected) {
+                alert('Please connect first');
+                return;
+            }
+            const status = document.getElementById('presenceStatus').value;
+            ws.send(JSON.stringify({
+                type: 'presence_update',
+                data: { status: status }
+            }));
+        }
+
+        async function sendNotification() {
+            const targetUserId = document.getElementById('targetUserId').value;
+            const type = document.getElementById('notificationType').value;
+            const title = document.getElementById('notificationTitle').value;
+            const message = document.getElementById('notificationMessage').value;
+
+            try {
+                const response = await fetch('/api/v1/websocket/send/notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${document.getElementById('token').value}`
+                    },
+                    body: JSON.stringify({
+                        target_user_id: parseInt(targetUserId),
+                        type: type,
+                        title: title,
+                        message: message,
+                        data: { test: true }
+                    })
+                });
+
+                if (response.ok) {
+                    addMessage('API', 'Notification sent successfully', 'system');
+                } else {
+                    addMessage('API Error', `Failed to send notification: ${response.statusText}`, 'system');
+                }
+            } catch (error) {
+                addMessage('API Error', `Error: ${error.message}`, 'system');
+            }
+        }
+
+        async function sendSystemNotification() {
+            const type = document.getElementById('notificationType').value;
+            const title = document.getElementById('notificationTitle').value;
+            const message = document.getElementById('notificationMessage').value;
+
+            try {
+                const response = await fetch('/api/v1/websocket/send/system', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${document.getElementById('token').value}`
+                    },
+                    body: JSON.stringify({
+                        type: type,
+                        title: title,
+                        message: message,
+                        data: { test: true }
+                    })
+                });
+
+                if (response.ok) {
+                    addMessage('API', 'System notification sent successfully', 'system');
+                } else {
+                    addMessage('API Error', `Failed to send system notification: ${response.statusText}`, 'system');
+                }
+            } catch (error) {
+                addMessage('API Error', `Error: ${error.message}`, 'system');
+            }
+        }
+
+        // Auto-connect on page load (remove this in production)
+        window.onload = function () {
+            addMessage('Info', 'WebSocket client loaded. Enter a JWT token and click Connect to start.', 'system');
+        };
+    </script>
+</body>
+
+</html>
