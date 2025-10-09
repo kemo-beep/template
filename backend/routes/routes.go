@@ -12,7 +12,8 @@ func SetupRoutes(r *gin.Engine, healthController *controllers.HealthController,
 	authController *controllers.AuthController, userController *controllers.UserController,
 	uploadController *controllers.UploadController, generatorController *controllers.GeneratorController,
 	oauth2Controller *controllers.OAuth2Controller, cacheController *controllers.CacheController,
-	paymentController *controllers.PaymentController, websocketController *controllers.WebSocketController) {
+	paymentController *controllers.PaymentController, websocketController *controllers.WebSocketController,
+	offlineSyncController *controllers.OfflineSyncController) {
 
 	// Health check routes
 	r.GET("/health", healthController.HealthCheck)
@@ -76,6 +77,9 @@ func SetupRoutes(r *gin.Engine, healthController *controllers.HealthController,
 
 		// Payment routes (separate group for better organization)
 		SetupPaymentRoutes(api, paymentController)
+
+		// Offline sync routes
+		SetupOfflineSyncRoutes(r, offlineSyncController)
 	}
 
 	// Serve uploaded files

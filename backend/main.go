@@ -57,6 +57,16 @@ func main() {
 		&models.PaymentMethod{},
 		&models.WebhookEvent{},
 		&models.GeminiConversation{},
+		&models.OfflineOperation{},
+		&models.SyncConflict{},
+		&models.DataVersion{},
+		&models.SyncStatus{},
+		&models.SyncHistory{},
+		&models.PushNotification{},
+		&models.NotificationTemplate{},
+		&models.NotificationSegment{},
+		&models.DeviceToken{},
+		&models.NotificationAnalytics{},
 	); err != nil {
 		logger.Fatal("Failed to run database migrations", zap.Error(err))
 	}
@@ -105,6 +115,15 @@ func main() {
 		logger.Fatal("Failed to initialize Gemini service", zap.Error(err))
 	}
 
+	// Initialize offline sync service
+	offlineSyncService := services.NewOfflineSyncService(config.GetDB(), redisClient, cacheService, websocketService, logger.Logger)
+
+	// Start background retry service for offline sync
+	go offlineSyncService.StartRetryService(context.Background())
+
+	// Initialize push notification service
+	pushNotificationService := services.NewPushNotificationService(config.GetDB(), redisClient, cacheService, websocketService, logger.Logger)
+
 	// Start WebSocket hub in a goroutine
 	go websocketHub.Run()
 
@@ -138,6 +157,8 @@ func main() {
 	jobQueueMetricsController := controllers.NewJobQueueMetricsController(jobQueueMetrics, logger.Logger)
 	productWebhookController := controllers.NewProductWebhookController(stripeService, polarService, productSyncService)
 	geminiController := controllers.NewGeminiController(geminiService, logger.Logger)
+	offlineSyncController := controllers.NewOfflineSyncController(offlineSyncService, logger.Logger)
+	pushNotificationController := controllers.NewPushNotificationController(pushNotificationService, logger.Logger)
 	// Subscription management controller is initialized in routes
 
 	// Setup Gin router
@@ -169,7 +190,7 @@ func main() {
 	apiGroup.Use(rateLimiter.APIRateLimit())
 
 	// Setup routes
-	routes.SetupRoutes(r, healthController, authController, userController, uploadController, generatorController, oauth2Controller, cacheController, paymentController, websocketController)
+	routes.SetupRoutes(r, healthController, authController, userController, uploadController, generatorController, oauth2Controller, cacheController, paymentController, websocketController, offlineSyncController)
 
 	// Setup WebSocket routes with logger
 	routes.SetupWebSocketRoutes(r, websocketController, logger.Logger)
@@ -204,6 +225,9 @@ func main() {
 
 	// Setup Gemini AI routes with rate limiting
 	routes.SetupGeminiRoutesWithRateLimit(r, geminiController, rateLimiter, logger.Logger)
+
+	// Setup push notification routes
+	routes.SetupPushNotificationRoutes(r, pushNotificationController)
 
 	// Regenerate Swagger documentation on startup
 	logger.Info("Regenerating Swagger documentation...")

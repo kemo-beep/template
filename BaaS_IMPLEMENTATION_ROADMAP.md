@@ -577,7 +577,7 @@ GET    /api/v1/devices/analytics       # Get device analytics
 ### **Task 3.1: Admin Dashboard** ⏱️ *Week 1-2*
 
 #### **Requirements**
-- **Frontend**: Vue.js with TypeScript
+- **Frontend**: Nextjs app router with TypeScript, framer motion 
 - **Backend**: Go with admin APIs
 - **Target**: Web-based administration interface
 
@@ -621,7 +621,7 @@ PUT    /api/v1/admin/settings          # Update settings
 ```
 
 #### **Deliverables**
-- [ ] **Admin Interface**: Vue.js admin dashboard
+- [ ] **Admin Interface**: Nextjs app router with TypeScript, framer motion  admin dashboard
 - [ ] **User Management**: Complete user management
 - [ ] **Analytics Integration**: Real-time analytics
 - [ ] **System Monitoring**: Health monitoring
@@ -1352,7 +1352,7 @@ Milestone 5 (4 weeks): 3 developers
 
 ### **Immediate Actions (Week 1)**
 1. **Set up project structure** for CLI tools
-2. **Install dependencies** (Cobra, React, Vue.js)
+2. **Install dependencies** (Cobra, React, nextjs)
 3. **Create initial prototypes** for CLI and API explorer
 4. **Set up development environment** with all tools
 

@@ -146,6 +146,7 @@ func generateTypeScriptSDK(outputDir, packageName, baseURL string) {
 	generateTypeScriptClient(srcDir, config)
 	generateTypeScriptServices(servicesDir, config)
 	generateTypeScriptTypes(typesDir, config)
+	generateTypeScriptOfflineSync(servicesDir, config)
 	generateTypeScriptIndex(srcDir, config)
 	generateTypeScriptReadme(tsDir, config)
 
